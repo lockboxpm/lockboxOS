@@ -1,6 +1,6 @@
 import type React from 'react';
 
-export type PanelType = 'home' | 'cv' | 'projects' | 'consulting' | 'tax' | 'schedule' | 'contact' | 'console' | 'integrations' | 'clients' | 'intake' | 'store';
+export type PanelType = 'home' | 'cv' | 'tech-consulting' | 'realestate-consulting' | 'tax' | 'communicate' | 'integrations' | 'clients' | 'intake' | 'store' | 'retreats' | 'lending' | 'profile' | 'myprojects' | 'admin';
 
 export interface Panel {
     id: PanelType;
@@ -9,9 +9,53 @@ export interface Panel {
 }
 
 export interface User {
+    id: string;
     username: string;
+    email: string;
+    phone?: string;
     role: 'admin' | 'user';
-    token?: string; // Mock token
+    token?: string;
+    createdAt: string;
+    profilePhoto?: string;
+    // Linked data
+    businesses: Business[];
+    projectRequests: ProjectRequest[];
+}
+
+export interface Business {
+    id: string;
+    name: string;
+    type: 'LLC' | 'Corporation' | 'Sole Proprietorship' | 'Partnership' | 'Non-Profit' | 'Other';
+    industry?: string;
+    website?: string;
+    address?: string;
+    contacts: ContactInfo[];
+    createdAt: string;
+}
+
+export interface ContactInfo {
+    id: string;
+    type: 'email' | 'phone' | 'website' | 'linkedin' | 'other';
+    label: string;
+    value: string;
+}
+
+export type ProjectStatus = 'draft' | 'submitted' | 'in_review' | 'approved' | 'in_progress' | 'completed' | 'cancelled';
+
+export interface ProjectRequest {
+    id: string;
+    title: string;
+    description: string;
+    type: 'consulting' | 'development' | 'integration' | 'automation' | 'support' | 'other';
+    status: ProjectStatus;
+    businessId?: string;
+    userId: string;
+    budget?: string;
+    timeline?: string;
+    createdAt: string;
+    updatedAt: string;
+    notes?: string;
+    assignedTo?: string;
 }
 
 export interface Project {
@@ -114,11 +158,30 @@ export interface DataContextType {
     // Auth
     user: User | null;
     login: (username: string, role: 'admin' | 'user') => void;
+    loginWithProfile: (userData: Omit<User, 'token'>) => void;
+    registerUser: (email: string, username: string, password: string, phone?: string) => User;
     logout: () => void;
-    
+    updateUserProfile: (updates: Partial<User>) => void;
+
     // State
     isAdmin: boolean;
-    
+
+    // User's Businesses
+    addBusiness: (business: Business) => void;
+    updateBusiness: (businessId: string, updates: Partial<Business>) => void;
+    deleteBusiness: (businessId: string) => void;
+
+    // User's Project Requests
+    addProjectRequest: (project: Omit<ProjectRequest, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => void;
+    updateProjectRequest: (projectId: string, updates: Partial<ProjectRequest>) => void;
+    deleteProjectRequest: (projectId: string) => void;
+
+    // Admin: All Users & Projects
+    allUsers: User[];
+    allProjectRequests: ProjectRequest[];
+    updateUserRole: (userId: string, role: 'admin' | 'user') => void;
+    updateProjectStatus: (projectId: string, status: ProjectStatus) => void;
+
     // Dynamic Data Management
     clients: Client[];
     addClient: (client: Client) => void;
@@ -133,7 +196,7 @@ export interface DataContextType {
     services: Service[];
     addService: (service: Service) => void;
     deleteService: (index: number) => void;
-    
+
     // Cart & Store
     cart: CartItem[];
     addToCart: (product: Product) => void;
@@ -155,7 +218,7 @@ export interface DataContextType {
     cvExperiences: CvExperience[];
     addCvExperience: (e: CvExperience) => void;
     deleteCvExperience: (id: string) => void;
-    
+
     cvEducation: CvEducation[];
     addCvEducation: (e: CvEducation) => void;
     deleteCvEducation: (id: string) => void;

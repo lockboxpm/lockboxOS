@@ -4,18 +4,21 @@ import { PANELS } from './constants';
 import Sidebar from './components/Sidebar';
 import HomePanel from './components/panels/HomePanel';
 import CvPanel from './components/panels/CvPanel';
-import ProjectsPanel from './components/panels/ProjectsPanel';
-import ConsultingPanel from './components/panels/ConsultingPanel';
+import ProfilePanel from './components/panels/ProfilePanel';
+import ClientProjectsPanel from './components/panels/ClientProjectsPanel';
+import AdminPanel from './components/panels/AdminPanel';
+import TechConsultingPanel from './components/panels/TechConsultingPanel';
+import RealEstateConsultingPanel from './components/panels/RealEstateConsultingPanel';
 import TaxPanel from './components/panels/TaxPanel';
-import SchedulePanel from './components/panels/SchedulePanel';
-import ContactPanel from './components/panels/ContactPanel';
-import ConsolePanel from './components/panels/ConsolePanel';
+import CommunicatePanel from './components/panels/CommunicatePanel';
 import IntegrationsPanel from './components/panels/IntegrationsPanel';
 import ClientsPanel from './components/panels/ClientsPanel';
 import IntakePanel from './components/panels/IntakePanel';
 import StorePanel from './components/panels/StorePanel';
+import RetreatsPanel from './components/panels/RetreatsPanel';
+import LendingPanel from './components/panels/LendingPanel';
 import ChatWidget from './components/ChatWidget';
-import AuthModal from './components/AuthModal'; 
+import AuthModal from './components/AuthModal';
 import { DataProvider } from './contexts/DataContext';
 
 const GlobalKaliWatermark = () => (
@@ -37,16 +40,19 @@ const AppContent: React.FC = () => {
     switch (activePanel) {
       case 'home': return <HomePanel setActivePanel={setActivePanel} />;
       case 'cv': return <CvPanel />;
-      case 'projects': return <ProjectsPanel />;
-      case 'consulting': return <ConsultingPanel setActivePanel={setActivePanel} />;
+      case 'tech-consulting': return <TechConsultingPanel setActivePanel={setActivePanel} />;
+      case 'realestate-consulting': return <RealEstateConsultingPanel setActivePanel={setActivePanel} />;
       case 'integrations': return <IntegrationsPanel />;
-      case 'tax': return <TaxPanel />;
-      case 'console': return <ConsolePanel />;
-      case 'schedule': return <SchedulePanel />;
-      case 'contact': return <ContactPanel />;
+      case 'tax': return <TaxPanel setActivePanel={setActivePanel} />;
+      case 'communicate': return <CommunicatePanel />;
       case 'clients': return <ClientsPanel />;
       case 'intake': return <IntakePanel setActivePanel={setActivePanel} />;
       case 'store': return <StorePanel />;
+      case 'retreats': return <RetreatsPanel setActivePanel={setActivePanel} />;
+      case 'lending': return <LendingPanel setActivePanel={setActivePanel} />;
+      case 'profile': return <ProfilePanel />;
+      case 'myprojects': return <ClientProjectsPanel />;
+      case 'admin': return <AdminPanel />;
       default: return <HomePanel setActivePanel={setActivePanel} />;
     }
   };
@@ -54,69 +60,59 @@ const AppContent: React.FC = () => {
   const activePanelData = PANELS.find(p => p.id === activePanel) || PANELS[0];
 
   return (
-    <div className="relative flex h-screen w-full overflow-hidden bg-slate-950 text-slate-300 selection:bg-cyan-500/30 selection:text-cyan-200">
-      
-      {/* --- GLOBAL BACKGROUND LAYERS --- */}
-      
-      {/* 1. Base Gradient */}
-      <div className="absolute inset-0 z-0 bg-gradient-to-br from-slate-950 via-slate-900 to-black"></div>
+    <div className="relative flex h-screen w-full overflow-hidden bg-slate-900 text-slate-200 selection:bg-blue-500/30 selection:text-blue-100">
 
-      {/* 2. Tech Grid */}
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03]" 
-           style={{
-               backgroundImage: `linear-gradient(#06b6d4 1px, transparent 1px), linear-gradient(to right, #06b6d4 1px, transparent 1px)`,
-               backgroundSize: '50px 50px'
-           }}>
+      {/* --- SIMPLIFIED BACKGROUND --- */}
+
+      {/* 1. Clean Gradient */}
+      <div className="absolute inset-0 z-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"></div>
+
+      {/* 2. Subtle top accent */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent z-0"></div>
+
+      {/* 3. Soft radial glow */}
+      <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,rgba(59,130,246,0.08)_0%,transparent_50%)]"></div>
+
+      {/* 4. Pi Watermark Branding */}
+      <div className="absolute bottom-0 right-0 z-0 pointer-events-none opacity-[0.03]">
+        <img src="/pi_alpha.png" alt="" className="w-[500px] h-[500px] object-contain" />
       </div>
-
-      {/* 3. Watermark */}
-      <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none overflow-hidden">
-          <div className="w-[140vh] h-[140vh] transform rotate-12">
-             <GlobalKaliWatermark />
-          </div>
-      </div>
-
-      {/* 4. Vignette for focus */}
-      <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_20%,rgba(2,6,23,0.9)_100%)]"></div>
-
-      {/* 5. Scanlines (CSS class in index.html) */}
-      <div className="scanlines"></div>
 
       {/* --- CONTENT --- */}
 
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-slate-800 focus:text-cyan-400">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-slate-800 focus:text-blue-400">
         Skip to content
       </a>
-      
+
       <div className="z-30 h-full shadow-2xl">
-        <Sidebar 
-            activePanel={activePanel} 
-            setActivePanel={setActivePanel} 
-            onOpenAuth={() => setIsAuthModalOpen(true)}
+        <Sidebar
+          activePanel={activePanel}
+          setActivePanel={setActivePanel}
+          onOpenAuth={() => setIsAuthModalOpen(true)}
         />
       </div>
 
       <main id="main-content" className="relative z-10 flex-1 flex flex-col overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
         {/* Mobile Header */}
         <div className="sticky top-0 z-20 bg-slate-900/80 backdrop-blur-md p-4 border-b border-slate-700/50 lg:hidden flex items-center gap-3 shadow-lg">
-             <div className="text-cyan-400">{activePanelData.icon}</div>
-            <h1 className="text-lg font-bold text-slate-100 tracking-wide uppercase font-mono">
-                {activePanelData.title}
-            </h1>
+          <div className="text-cyan-400">{activePanelData.icon}</div>
+          <h1 className="text-lg font-bold text-slate-100 tracking-wide uppercase font-mono">
+            {activePanelData.title}
+          </h1>
         </div>
 
         {/* Panel Container */}
         <div className="flex-1 p-4 md:p-8 lg:p-10 max-w-7xl mx-auto w-full animate-fade-in">
-            {renderPanel()}
+          {renderPanel()}
         </div>
 
         {/* Footer info */}
         <div className="p-4 text-center text-[10px] text-slate-600 font-mono opacity-50 pointer-events-none">
-            LOCKBOXPM OS v2.0 | ENCRYPTED CONNECTION | <span className="text-green-500">SYSTEM ONLINE</span>
+          LOCKBOXPM OS v2.0 | ENCRYPTED CONNECTION | <span className="text-green-500">SYSTEM ONLINE</span>
         </div>
       </main>
-      
-      <ChatWidget />
+
+      <ChatWidget onNavigate={(panel) => setActivePanel(panel as PanelType)} />
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </div>
   );
