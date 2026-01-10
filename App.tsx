@@ -92,11 +92,11 @@ const AppContent: React.FC = () => {
         />
       </div>
 
-      <main id="main-content" className="relative z-10 flex-1 flex flex-col overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
-        {/* Mobile Header */}
-        <div className="sticky top-0 z-20 bg-slate-900/80 backdrop-blur-md p-4 border-b border-slate-700/50 lg:hidden flex items-center gap-3 shadow-lg">
+      <main id="main-content" className="relative z-10 flex-1 flex flex-col overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent pt-16 lg:pt-0">
+        {/* Current Panel Header (mobile) */}
+        <div className="sticky top-0 z-20 bg-slate-900/80 backdrop-blur-md p-3 border-b border-slate-700/50 lg:hidden flex items-center gap-3">
           <div className="text-cyan-400">{activePanelData.icon}</div>
-          <h1 className="text-lg font-bold text-slate-100 tracking-wide uppercase font-mono">
+          <h1 className="text-sm font-bold text-slate-100 tracking-wide uppercase font-mono">
             {activePanelData.title}
           </h1>
         </div>
