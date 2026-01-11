@@ -3,6 +3,7 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { stripeCheckoutPlugin } from './server/stripe-checkout';
 import { emailPlugin } from './server/email';
+import { printfulPlugin } from './server/printful';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
@@ -13,29 +14,18 @@ export default defineConfig(({ mode }) => {
   process.env.SMTP_PORT = env.SMTP_PORT;
   process.env.SMTP_USER = env.SMTP_USER;
   process.env.SMTP_PASSWORD = env.SMTP_PASSWORD;
+  process.env.PRINTFUL_API_KEY = env.PRINTFUL_API_KEY;
 
   return {
     server: {
       port: 3000,
-      host: '0.0.0.0',
-      proxy: {
-        '/api/printful': {
-          target: 'https://api.printful.com',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/printful/, ''),
-          configure: (proxy) => {
-            proxy.on('proxyReq', (proxyReq) => {
-              proxyReq.setHeader('Authorization', `Bearer ${env.PRINTFUL_API_KEY}`);
-              proxyReq.setHeader('X-PF-Store-Id', '17464534');
-            });
-          }
-        }
-      }
+      host: '0.0.0.0'
     },
     plugins: [
       react(),
       stripeCheckoutPlugin(),
-      emailPlugin()
+      emailPlugin(),
+      printfulPlugin()
     ],
     define: {
       'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
