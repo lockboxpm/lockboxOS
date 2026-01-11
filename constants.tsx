@@ -214,9 +214,42 @@ export const PRODUCTS: Product[] = [
 // --- NEW DYNAMIC CONSTANTS ---
 
 export const INITIAL_VENTURES: Venture[] = [
-    { id: 'v1', name: 'Puma Malas', url: 'https://www.pumamala.com', status: 'loaded', logoUrl: 'https://www.google.com/s2/favicons?domain=pumamala.com&sz=128' },
-    { id: 'v2', name: 'Sierra Morena Tower', url: 'https://www.sierramorenatower.com', status: 'loaded', logoUrl: 'https://www.google.com/s2/favicons?domain=sierramorenatower.com&sz=128' },
-    { id: 'v3', name: 'My Digital Security', url: 'https://mydigitalsecurity.pro', status: 'loaded', logoUrl: '/mydigitalsecurity-logo.png', summary: 'Digital and physical security solutions with remote monitoring and self-installation kits.', products: ['Remote Network Monitoring', 'Security Self-Installation Kits', 'Remote Tech Support'] }
+    {
+        id: 'v4',
+        name: 'Elevated Exterior Elements',
+        url: 'https://elevatedexteriorelements.com',
+        status: 'loaded',
+        logoUrl: 'https://www.google.com/s2/favicons?domain=elevatedexteriorelements.com&sz=128',
+        summary: 'Premium exterior construction and landscaping services in the Bay Area.',
+        products: ['Decks & Patios', 'Fencing & Gates', 'Outdoor Living Spaces']
+    },
+    {
+        id: 'v1',
+        name: 'Puma Malas',
+        url: 'https://www.pumamala.com',
+        status: 'loaded',
+        logoUrl: 'https://www.google.com/s2/favicons?domain=pumamala.com&sz=128',
+        summary: 'Wellness retreat and adventure destination in the heart of Costa Rica\'s rainforest.',
+        products: ['Private Retreat Bookings', 'Adventure Tours', 'Wellness Programs']
+    },
+    {
+        id: 'v2',
+        name: 'Sierra Morena Tower',
+        url: 'https://www.sierramorenatower.com',
+        status: 'loaded',
+        logoUrl: 'https://www.google.com/s2/favicons?domain=sierramorenatower.com&sz=128',
+        summary: 'Luxury residential tower with panoramic mountain views and premium amenities.',
+        products: ['Unit Sales', 'Property Management', 'HOA Administration']
+    },
+    {
+        id: 'v3',
+        name: 'My Digital Security',
+        url: 'https://mydigitalsecurity.pro',
+        status: 'loaded',
+        logoUrl: '/mydigitalsecurity-logo.png',
+        summary: 'Digital and physical security solutions with remote monitoring and self-installation kits.',
+        products: ['Remote Network Monitoring', 'Security Self-Installation Kits', 'Remote Tech Support']
+    }
 ];
 
 export const INITIAL_CV_EXPERIENCE: CvExperience[] = [

@@ -1,6 +1,7 @@
 import React from 'react';
 import Panel from '../Panel';
 import type { PanelType } from '../../types';
+import ServiceCard from '../ServiceCard';
 
 interface TaxPanelProps {
     setActivePanel: (panel: PanelType) => void;
@@ -33,28 +34,43 @@ const TaxPanel: React.FC<TaxPanelProps> = ({ setActivePanel }) => {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div className="bg-slate-800/50 rounded-lg p-5 border border-slate-700/50">
-                                <div className="text-2xl font-bold text-slate-100 mb-1">$800</div>
-                                <div className="text-violet-400 font-medium text-sm mb-3">Personal 1040 Filing</div>
-                                <p className="text-sm text-slate-400">For US expats and US filers with <span className="text-slate-200">under $200k</span> in international assets.</p>
-                            </div>
-                            <div className="bg-slate-800/50 rounded-lg p-5 border border-slate-700/50">
-                                <div className="text-2xl font-bold text-slate-100 mb-1">$2,000</div>
-                                <div className="text-violet-400 font-medium text-sm mb-3">Complex Expat Filing</div>
-                                <p className="text-sm text-slate-400">For US expats and US Filers with <span className="text-slate-200">over $200k</span> in international assets.</p>
-                            </div>
-                            <div className="bg-slate-800/50 rounded-lg p-5 border border-violet-500/30 relative">
-                                <div className="absolute -top-2 right-3 bg-violet-500 text-white text-[9px] font-bold px-2 py-0.5 rounded">BUSINESS</div>
-                                <div className="text-2xl font-bold text-slate-100 mb-1">$2,500<span className="text-sm font-normal text-slate-500">+</span></div>
-                                <div className="text-violet-400 font-medium text-sm mb-3">US Corp / LLC Filing</div>
-                                <p className="text-sm text-slate-400">Annual tax filing for US corporations and LLCs. <span className="text-slate-200">S-Corp, C-Corp, partnerships.</span></p>
-                            </div>
-                            <div className="bg-slate-800/50 rounded-lg p-5 border border-emerald-500/30 relative">
-                                <div className="absolute -top-2 right-3 bg-emerald-500 text-slate-900 text-[9px] font-bold px-2 py-0.5 rounded">NO RISK</div>
-                                <div className="text-2xl font-bold text-slate-100 mb-1">$250<span className="text-sm font-normal text-slate-500">/year</span></div>
-                                <div className="text-emerald-400 font-medium text-sm mb-3">Prior Year Review</div>
-                                <p className="text-sm text-slate-400">Review 3 prior years for missed credits & rebates. <span className="text-emerald-400">$0 if rebate is under $250.</span></p>
-                            </div>
+                            <ServiceCard
+                                id="tax-1040-basic"
+                                price={800}
+                                title="Personal 1040 Filing"
+                                description="For US expats and US filers with <span class='text-slate-200'>under $200k</span> in international assets."
+                                category="Tax Preparation"
+                                accentColor="violet"
+                            />
+                            <ServiceCard
+                                id="tax-1040-complex"
+                                price={2000}
+                                title="Complex Expat Filing"
+                                description="For US expats and US filers with <span class='text-slate-200'>over $200k</span> in international assets."
+                                category="Tax Preparation"
+                                accentColor="violet"
+                            />
+                            <ServiceCard
+                                id="tax-corp"
+                                price={2500}
+                                priceLabel="$2,500+"
+                                title="US Corp / LLC Filing"
+                                description="Annual tax filing for US corporations and LLCs. <span class='text-slate-200'>S-Corp, C-Corp, partnerships.</span>"
+                                category="Tax Preparation"
+                                badge="BUSINESS"
+                                badgeColor="violet"
+                                accentColor="violet"
+                            />
+                            <ServiceCard
+                                id="tax-prior-review"
+                                price={250}
+                                title="Prior Year Review"
+                                description="Review 3 prior years for missed credits & rebates. <span class='text-emerald-400'>$0 if rebate is under $250.</span>"
+                                category="Tax Preparation"
+                                badge="NO RISK"
+                                badgeColor="emerald"
+                                accentColor="emerald"
+                            />
                         </div>
                     </div>
 
@@ -68,27 +84,39 @@ const TaxPanel: React.FC<TaxPanelProps> = ({ setActivePanel }) => {
                             </div>
                             <div>
                                 <h4 className="text-xl font-bold text-slate-100">Bookkeeping Repairs</h4>
-                                <p className="text-xs text-rose-400">Strategic review & cleanup of your financial records</p>
+                                <p className="text-xs text-rose-400">Strategic review & cleanup plan for your companies financial records.</p>
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="bg-slate-800/50 rounded-lg p-5 border border-slate-700/50">
-                                <div className="text-2xl font-bold text-slate-100 mb-1">$1,000</div>
-                                <div className="text-rose-400 font-medium text-sm mb-3">Small Business</div>
-                                <p className="text-sm text-slate-400">Strategic bookkeeping review for businesses with <span className="text-slate-200">under $1M</span> annual revenue.</p>
-                            </div>
-                            <div className="bg-slate-800/50 rounded-lg p-5 border border-slate-700/50">
-                                <div className="text-2xl font-bold text-slate-100 mb-1">$2,500</div>
-                                <div className="text-rose-400 font-medium text-sm mb-3">Growth Stage</div>
-                                <p className="text-sm text-slate-400">Comprehensive review for businesses with <span className="text-slate-200">$1M – $10M</span> annual revenue.</p>
-                            </div>
-                            <div className="bg-slate-800/50 rounded-lg p-5 border border-rose-500/30 relative">
-                                <div className="absolute -top-2 right-3 bg-rose-500 text-white text-[9px] font-bold px-2 py-0.5 rounded">CUSTOM</div>
-                                <div className="text-2xl font-bold text-slate-100 mb-1">By Quote</div>
-                                <div className="text-rose-400 font-medium text-sm mb-3">Enterprise</div>
-                                <p className="text-sm text-slate-400">Tailored engagement for businesses with <span className="text-slate-200">over $10M</span> annual revenue.</p>
-                            </div>
+                            <ServiceCard
+                                id="book-small"
+                                price={1000}
+                                title="Small Business"
+                                description="Strategic bookkeeping review for businesses with <span class='text-slate-200'>under $1M</span> annual revenue."
+                                category="Bookkeeping Repairs"
+                                accentColor="rose"
+                            />
+                            <ServiceCard
+                                id="book-growth"
+                                price={2500}
+                                title="Growth Stage"
+                                description="Comprehensive review for businesses with <span class='text-slate-200'>$1M – $10M</span> annual revenue."
+                                category="Bookkeeping Repairs"
+                                accentColor="rose"
+                            />
+                            <ServiceCard
+                                id="book-enterprise"
+                                price={0}
+                                priceLabel="By Quote"
+                                title="Enterprise"
+                                description="Tailored engagement for businesses with <span class='text-slate-200'>over $10M</span> annual revenue."
+                                category="Bookkeeping Repairs"
+                                badge="CUSTOM"
+                                badgeColor="rose"
+                                accentColor="rose"
+                                isQuoteOnly={true}
+                            />
                         </div>
 
                         <div className="mt-4 p-4 bg-slate-800/30 rounded-lg border-l-4 border-rose-500">
@@ -113,28 +141,48 @@ const TaxPanel: React.FC<TaxPanelProps> = ({ setActivePanel }) => {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div className="bg-slate-800/50 rounded-lg p-5 border border-amber-500/30 relative">
-                                <div className="absolute -top-2 right-3 bg-amber-500 text-slate-900 text-[9px] font-bold px-2 py-0.5 rounded">QUOTE</div>
-                                <div className="text-2xl font-bold text-slate-100 mb-1">IRS Prep</div>
-                                <div className="text-amber-400 font-medium text-sm mb-3">Audit Defense</div>
-                                <p className="text-sm text-slate-400">Comprehensive preparation for IRS audits, notices, and correspondence.</p>
-                            </div>
-                            <div className="bg-slate-800/50 rounded-lg p-5 border border-amber-500/30 relative">
-                                <div className="absolute -top-2 right-3 bg-amber-500 text-slate-900 text-[9px] font-bold px-2 py-0.5 rounded">QUOTE</div>
-                                <div className="text-2xl font-bold text-slate-100 mb-1">DRE Prep</div>
-                                <div className="text-amber-400 font-medium text-sm mb-3">Real Estate Audit</div>
-                                <p className="text-sm text-slate-400">California DRE audit preparation for brokers and property managers.</p>
-                            </div>
-                            <div className="bg-slate-800/50 rounded-lg p-5 border border-slate-700/50">
-                                <div className="text-2xl font-bold text-slate-100 mb-1">$2,500</div>
-                                <div className="text-amber-400 font-medium text-sm mb-3">Preventative Audit</div>
-                                <p className="text-sm text-slate-400">Proactive compliance review to identify and fix issues before they become problems.</p>
-                            </div>
-                            <div className="bg-slate-800/50 rounded-lg p-5 border border-slate-700/50">
-                                <div className="text-2xl font-bold text-slate-100 mb-1">$5,000<span className="text-sm font-normal text-slate-500">/yr</span></div>
-                                <div className="text-amber-400 font-medium text-sm mb-3">Ongoing Compliance</div>
-                                <p className="text-sm text-slate-400">Annual compliance monitoring with quarterly reviews and documentation.</p>
-                            </div>
+                            <ServiceCard
+                                id="audit-irs"
+                                price={0}
+                                priceLabel="IRS Prep"
+                                title="Audit Defense"
+                                description="Comprehensive preparation for IRS audits, notices, and correspondence."
+                                category="Regulatory Audit"
+                                badge="QUOTE"
+                                badgeColor="amber"
+                                accentColor="amber"
+                                isQuoteOnly={true}
+                            />
+                            <ServiceCard
+                                id="audit-dre"
+                                price={0}
+                                priceLabel="DRE Prep"
+                                title="Real Estate Audit"
+                                description="California DRE audit preparation for brokers and property managers."
+                                category="Regulatory Audit"
+                                badge="QUOTE"
+                                badgeColor="amber"
+                                accentColor="amber"
+                                isQuoteOnly={true}
+                            />
+                            <ServiceCard
+                                id="audit-preventative"
+                                price={2500}
+                                title="Preventative Audit"
+                                description="Proactive compliance review to identify and fix issues before they become problems."
+                                category="Regulatory Audit"
+                                accentColor="amber"
+                            />
+                            <ServiceCard
+                                id="compliance-annual"
+                                price={5000}
+                                title="Ongoing Compliance"
+                                description="Annual compliance monitoring with quarterly reviews and documentation."
+                                category="Regulatory Audit"
+                                accentColor="amber"
+                                isRecurring={true}
+                                interval="year"
+                            />
                         </div>
 
                         <div className="mt-4 p-4 bg-slate-800/30 rounded-lg border-l-4 border-amber-500">
@@ -159,33 +207,52 @@ const TaxPanel: React.FC<TaxPanelProps> = ({ setActivePanel }) => {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                            <div className="bg-slate-800/50 rounded-lg p-5 border border-green-500/30 relative">
-                                <div className="absolute -top-2 right-3 bg-green-500 text-slate-900 text-[9px] font-bold px-2 py-0.5 rounded">START HERE</div>
-                                <div className="text-2xl font-bold text-slate-100 mb-1">$299</div>
-                                <div className="text-green-400 font-medium text-sm mb-3">Credit & Debt Analysis</div>
-                                <p className="text-sm text-slate-400">Upload your 3 free reports. We analyze credit, identify disputes, and assess your full debt picture.</p>
-                            </div>
-                            <div className="bg-slate-800/50 rounded-lg p-5 border border-slate-700/50">
-                                <div className="text-2xl font-bold text-slate-100 mb-1">$50<span className="text-sm font-normal text-slate-500">/item</span></div>
-                                <div className="text-green-400 font-medium text-sm mb-3">Derogatory Dispute</div>
-                                <p className="text-sm text-slate-400">Per-item dispute with <span className="text-slate-200">certified letters to all 3 bureaus</span>. We handle the paperwork.</p>
-                            </div>
-                            <div className="bg-slate-800/50 rounded-lg p-5 border border-slate-700/50">
-                                <div className="text-2xl font-bold text-slate-100 mb-1">$499</div>
-                                <div className="text-green-400 font-medium text-sm mb-3">Credit Repair Strategy</div>
-                                <p className="text-sm text-slate-400">Comprehensive credit improvement plan with score optimization and rebuilding roadmap.</p>
-                            </div>
-                            <div className="bg-slate-800/50 rounded-lg p-5 border border-slate-700/50">
-                                <div className="text-2xl font-bold text-slate-100 mb-1">$499</div>
-                                <div className="text-green-400 font-medium text-sm mb-3">Debt Relief Strategy</div>
-                                <p className="text-sm text-slate-400">Custom debt cleanup plan with budgeting, negotiation strategies, and prioritized payoff roadmap.</p>
-                            </div>
-                            <div className="bg-slate-800/50 rounded-lg p-5 border border-amber-500/30 relative">
-                                <div className="absolute -top-2 right-3 bg-amber-500 text-slate-900 text-[9px] font-bold px-2 py-0.5 rounded">IF NEEDED</div>
-                                <div className="text-2xl font-bold text-slate-100 mb-1">$50<span className="text-sm font-normal text-slate-500">/each</span></div>
-                                <div className="text-amber-400 font-medium text-sm mb-3">Report Request</div>
-                                <p className="text-sm text-slate-400">If bureaus don't provide reports, we send certified letters to request them individually.</p>
-                            </div>
+                            <ServiceCard
+                                id="credit-analysis"
+                                price={299}
+                                title="Credit & Debt Analysis"
+                                description="Upload your 3 free reports. We analyze credit, identify disputes, and assess your full debt picture."
+                                category="Credit Repair"
+                                badge="START HERE"
+                                badgeColor="emerald"
+                                accentColor="emerald"
+                            />
+                            <ServiceCard
+                                id="credit-dispute"
+                                price={50}
+                                priceLabel="$50/item"
+                                title="Derogatory Dispute"
+                                description="Per-item dispute with <span class='text-slate-200'>certified letters to all 3 bureaus</span>. We handle the paperwork."
+                                category="Credit Repair"
+                                accentColor="emerald"
+                            />
+                            <ServiceCard
+                                id="credit-repair"
+                                price={499}
+                                title="Credit Repair Strategy"
+                                description="Comprehensive credit improvement plan with score optimization and rebuilding roadmap."
+                                category="Credit Repair"
+                                accentColor="emerald"
+                            />
+                            <ServiceCard
+                                id="debt-relief"
+                                price={499}
+                                title="Debt Relief Strategy"
+                                description="Custom debt cleanup plan with budgeting, negotiation strategies, and prioritized payoff roadmap."
+                                category="Credit Repair"
+                                accentColor="emerald"
+                            />
+                            <ServiceCard
+                                id="credit-report-request"
+                                price={50}
+                                priceLabel="$50/each"
+                                title="Report Request"
+                                description="If bureaus don't provide reports, we send certified letters to request them individually."
+                                category="Credit Repair"
+                                badge="IF NEEDED"
+                                badgeColor="amber"
+                                accentColor="amber"
+                            />
                         </div>
 
                         <div className="mt-4 p-4 bg-slate-800/30 rounded-lg border-l-4 border-green-500">

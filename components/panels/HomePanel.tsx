@@ -169,7 +169,7 @@ const VenturesSection: React.FC = () => {
                             <div className="flex justify-between items-start mb-4">
                                 <div className="flex items-center gap-3">
                                     {/* Logo Placeholder or Image */}
-                                    <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center p-1.5 shadow-sm overflow-hidden">
+                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center p-1.5 shadow-sm overflow-hidden ${v.logoUrl?.startsWith('/') ? 'bg-slate-800' : 'bg-white'}`}>
                                         {v.logoUrl ? (
                                             <img src={v.logoUrl} alt="logo" className="w-full h-full object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
                                         ) : (

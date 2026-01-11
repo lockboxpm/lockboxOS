@@ -18,7 +18,7 @@ import type {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 // Cache version - increment this when constants change to force refresh
-const CACHE_VERSION = '1.6';
+const CACHE_VERSION = '1.7';
 
 // Helper to safely parse JSON from localStorage
 const safeParse = (key: string, fallback: any) => {

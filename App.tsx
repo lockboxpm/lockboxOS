@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PanelType } from './types';
 import { PANELS } from './constants';
 import Sidebar from './components/Sidebar';
@@ -19,7 +19,52 @@ import RetreatsPanel from './components/panels/RetreatsPanel';
 import LendingPanel from './components/panels/LendingPanel';
 import ChatWidget from './components/ChatWidget';
 import AuthModal from './components/AuthModal';
+import FloatingCart from './components/FloatingCart';
 import { DataProvider } from './contexts/DataContext';
+import { CartProvider } from './contexts/CartContext';
+
+// URL slug to panel ID mapping (for short, shareable URLs)
+const URL_TO_PANEL: Record<string, PanelType> = {
+  '': 'home',
+  'home': 'home',
+  'intake': 'intake',
+  'merch': 'store',
+  'store': 'store',
+  'cv': 'cv',
+  'profile': 'cv',
+  'clients': 'clients',
+  'projects': 'clients',
+  'tech': 'tech-consulting',
+  'consulting': 'tech-consulting',
+  'realestate': 'realestate-consulting',
+  'real-estate': 'realestate-consulting',
+  'tax': 'tax',
+  'accounting': 'tax',
+  'retreats': 'retreats',
+  'lending': 'lending',
+  'contact': 'communicate',
+  'communicate': 'communicate',
+  'admin': 'admin',
+};
+
+// Panel ID to preferred URL slug (for consistent URLs)
+const PANEL_TO_URL: Record<PanelType, string> = {
+  'home': '',
+  'intake': 'intake',
+  'store': 'merch',
+  'cv': 'cv',
+  'clients': 'clients',
+  'tech-consulting': 'consulting',
+  'realestate-consulting': 'real-estate',
+  'tax': 'accounting',
+  'retreats': 'retreats',
+  'lending': 'lending',
+  'communicate': 'contact',
+  'integrations': 'integrations',
+  'profile': 'my-profile',
+  'myprojects': 'my-projects',
+  'admin': 'admin',
+};
 
 const GlobalKaliWatermark = () => (
   <svg
@@ -32,9 +77,40 @@ const GlobalKaliWatermark = () => (
   </svg>
 );
 
+// Get initial panel from URL
+const getInitialPanel = (): PanelType => {
+  const path = window.location.pathname.slice(1).toLowerCase();
+  return URL_TO_PANEL[path] || 'home';
+};
+
 const AppContent: React.FC = () => {
-  const [activePanel, setActivePanel] = useState<PanelType>('home');
+  const [activePanel, setActivePanel] = useState<PanelType>(getInitialPanel);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Sync URL when panel changes
+  useEffect(() => {
+    const urlSlug = PANEL_TO_URL[activePanel] || '';
+    const newPath = urlSlug ? `/${urlSlug}` : '/';
+    if (window.location.pathname !== newPath) {
+      window.history.pushState({}, '', newPath);
+    }
+  }, [activePanel]);
+
+  // Scroll to top on initial mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname.slice(1).toLowerCase();
+      const panel = URL_TO_PANEL[path] || 'home';
+      setActivePanel(panel);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const renderPanel = () => {
     switch (activePanel) {
@@ -113,6 +189,7 @@ const AppContent: React.FC = () => {
       </main>
 
       <ChatWidget onNavigate={(panel) => setActivePanel(panel as PanelType)} />
+      <FloatingCart onNavigate={(panel) => setActivePanel(panel as PanelType)} />
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </div>
   );
@@ -120,9 +197,11 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <DataProvider>
-      <AppContent />
-    </DataProvider>
+    <CartProvider>
+      <DataProvider>
+        <AppContent />
+      </DataProvider>
+    </CartProvider>
   );
 };
 
