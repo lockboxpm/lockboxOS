@@ -6,7 +6,8 @@ interface CartItem {
     name: string;
     price: number;
     quantity: number;
-    image: string;
+    image?: string;
+    interval?: 'month' | 'year';
 }
 
 export function stripeCheckoutPlugin(): Plugin {
@@ -27,10 +28,11 @@ export function stripeCheckoutPlugin(): Plugin {
                 }
 
                 try {
-                    const { items, successUrl, cancelUrl } = JSON.parse(body) as {
+                    const { items, successUrl, cancelUrl, mode = 'payment' } = JSON.parse(body) as {
                         items: CartItem[];
                         successUrl: string;
                         cancelUrl: string;
+                        mode?: 'payment' | 'subscription';
                     };
 
                     if (!items || items.length === 0) {
@@ -50,32 +52,50 @@ export function stripeCheckoutPlugin(): Plugin {
                     const stripe = new Stripe(stripeSecret);
 
                     // Create line items for Stripe Checkout
-                    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(item => ({
-                        price_data: {
+                    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(item => {
+                        const priceData: Stripe.Checkout.SessionCreateParams.LineItem.PriceData = {
                             currency: 'usd',
                             product_data: {
                                 name: item.name,
                                 images: item.image ? [item.image] : [],
                             },
                             unit_amount: Math.round(item.price * 100), // Convert to cents
-                        },
-                        quantity: item.quantity,
-                    }));
+                        };
 
-                    // Create Stripe Checkout Session
-                    const session = await stripe.checkout.sessions.create({
+                        // Add recurring interval for subscription mode
+                        if (mode === 'subscription') {
+                            priceData.recurring = {
+                                interval: item.interval || 'year',
+                            };
+                        }
+
+                        return {
+                            price_data: priceData,
+                            quantity: item.quantity,
+                        };
+                    });
+
+                    // Build session params
+                    const sessionParams: Stripe.Checkout.SessionCreateParams = {
                         payment_method_types: ['card'],
                         line_items: lineItems,
-                        mode: 'payment',
+                        mode: mode,
                         success_url: successUrl || `${req.headers.origin || 'http://localhost:3000'}/?checkout=success`,
                         cancel_url: cancelUrl || `${req.headers.origin || 'http://localhost:3000'}/?checkout=cancelled`,
-                        shipping_address_collection: {
-                            allowed_countries: ['US', 'CA', 'GB', 'AU', 'DE', 'FR', 'ES', 'IT', 'MX', 'CR'],
-                        },
                         metadata: {
-                            source: 'lockboxpm_merch_store',
+                            source: 'lockboxpm_services',
                         },
-                    });
+                    };
+
+                    // Add shipping for physical products (payment mode only)
+                    if (mode === 'payment') {
+                        sessionParams.shipping_address_collection = {
+                            allowed_countries: ['US', 'CA', 'GB', 'AU', 'DE', 'FR', 'ES', 'IT', 'MX', 'CR'],
+                        };
+                    }
+
+                    // Create Stripe Checkout Session
+                    const session = await stripe.checkout.sessions.create(sessionParams);
 
                     res.setHeader('Content-Type', 'application/json');
                     res.end(JSON.stringify({
@@ -94,3 +114,4 @@ export function stripeCheckoutPlugin(): Plugin {
         },
     };
 }
+

@@ -64,37 +64,60 @@ app.get('/api/printful/store/products/:id', async (req, res) => {
 });
 
 // Stripe Checkout Session
-app.post('/api/create-checkout-session', async (req, res) => {
+app.post('/api/checkout', async (req, res) => {
     try {
         const Stripe = (await import('stripe')).default;
         const stripe = new Stripe(process.env.STRIPE_API_SECRET_KEY || '', {
             apiVersion: '2025-04-30.basil'
         });
 
-        const { items, successUrl, cancelUrl } = req.body;
+        const { items, successUrl, cancelUrl, mode = 'payment' } = req.body;
 
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
-            line_items: items.map((item) => ({
-                price_data: {
-                    currency: 'usd',
-                    product_data: {
-                        name: item.name,
-                        images: item.image ? [item.image] : undefined,
-                    },
-                    unit_amount: Math.round(item.price * 100),
+        // Build line items based on mode
+        const lineItems = items.map((item) => {
+            const priceData = {
+                currency: 'usd',
+                product_data: {
+                    name: item.name,
+                    images: item.image ? [item.image] : undefined,
                 },
+                unit_amount: Math.round(item.price * 100),
+            };
+
+            // Add recurring interval for subscription mode
+            if (mode === 'subscription') {
+                priceData.recurring = {
+                    interval: item.interval || 'year',
+                };
+            }
+
+            return {
+                price_data: priceData,
                 quantity: item.quantity || 1,
-            })),
-            mode: 'payment',
-            success_url: successUrl || `${req.headers.origin}/success`,
-            cancel_url: cancelUrl || `${req.headers.origin}/`,
+            };
         });
 
-        res.json({ url: session.url });
+        const sessionParams = {
+            payment_method_types: ['card'],
+            line_items: lineItems,
+            mode: mode,
+            success_url: successUrl || `${req.headers.origin}/?checkout=success`,
+            cancel_url: cancelUrl || `${req.headers.origin}/?checkout=cancelled`,
+        };
+
+        // Add shipping for physical products (payment mode only)
+        if (mode === 'payment') {
+            sessionParams.shipping_address_collection = {
+                allowed_countries: ['US', 'CA', 'GB', 'AU', 'DE', 'FR', 'ES', 'IT', 'MX', 'CR'],
+            };
+        }
+
+        const session = await stripe.checkout.sessions.create(sessionParams);
+
+        res.json({ url: session.url, sessionId: session.id });
     } catch (error) {
         console.error('Stripe checkout error:', error);
-        res.status(500).json({ error: 'Failed to create checkout session' });
+        res.status(500).json({ error: error.message || 'Failed to create checkout session' });
     }
 });
 

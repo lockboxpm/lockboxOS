@@ -15,7 +15,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel, onOpenAu
 
   const filteredPanels = PANELS.filter((panel) => {
     if (panel.id === 'admin' && !isAdmin) return false;
-    if ((panel.id === 'profile' || panel.id === 'myprojects') && !user) return false;
+    if ((panel.id === 'profile' || panel.id === 'myprojects' || panel.id === 'mypurchases') && !user) return false;
     return true;
   });
 

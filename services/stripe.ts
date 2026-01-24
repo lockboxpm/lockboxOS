@@ -5,10 +5,19 @@ export interface CheckoutResponse {
     sessionId: string;
 }
 
+export interface CheckoutItem {
+    name: string;
+    price: number;
+    quantity: number;
+    image?: string;
+    interval?: 'month' | 'year';
+}
+
 export async function createCheckoutSession(
-    items: CartItem[],
+    items: CheckoutItem[],
     successUrl?: string,
-    cancelUrl?: string
+    cancelUrl?: string,
+    mode: 'payment' | 'subscription' = 'payment'
 ): Promise<CheckoutResponse> {
     const response = await fetch('/api/checkout', {
         method: 'POST',
@@ -17,14 +26,16 @@ export async function createCheckoutSession(
         },
         body: JSON.stringify({
             items: items.map(item => ({
-                id: item.id,
+                id: (item as any).id,
                 name: item.name,
                 price: item.price,
                 quantity: item.quantity,
                 image: item.image,
+                interval: item.interval,
             })),
             successUrl: successUrl || `${window.location.origin}/?checkout=success`,
             cancelUrl: cancelUrl || `${window.location.origin}/?checkout=cancelled`,
+            mode,
         }),
     });
 

@@ -32,24 +32,56 @@ const FloatingCart: React.FC<FloatingCartProps> = ({ onNavigate }) => {
             const oneTimeItems = cartItems.filter(item => !item.isRecurring);
             const recurringItems = cartItems.filter(item => item.isRecurring);
 
-            // For now, handle one-time items only (recurring needs Stripe subscription setup)
+            // Handle mixed cart - warn user they need separate checkouts
+            if (oneTimeItems.length > 0 && recurringItems.length > 0) {
+                const proceed = confirm(
+                    'Your cart contains both one-time purchases and subscriptions. ' +
+                    'These require separate checkouts. Click OK to proceed with one-time items first, ' +
+                    'then you can checkout subscriptions separately.'
+                );
+                if (!proceed) {
+                    setIsCheckingOut(false);
+                    return;
+                }
+            }
+
+            // Handle one-time items
             if (oneTimeItems.length > 0) {
                 const stripeItems = oneTimeItems.map(item => ({
                     name: item.name,
                     price: item.price,
                     quantity: item.quantity,
-                    image: item.image
+                    image: item.image || undefined // Filter out empty strings
                 }));
 
                 const result = await createCheckoutSession(stripeItems);
                 if (result?.url) {
-                    clearCart();
+                    // Only clear one-time items, keep recurring for next checkout
+                    if (recurringItems.length > 0) {
+                        oneTimeItems.forEach(item => removeFromCart(item.id));
+                    } else {
+                        clearCart();
+                    }
                     window.location.href = result.url;
+                    return;
                 }
             }
 
+            // Handle recurring items (subscription mode)
             if (recurringItems.length > 0 && oneTimeItems.length === 0) {
-                alert('Subscription checkout coming soon! Please contact us to set up recurring services.');
+                const stripeItems = recurringItems.map(item => ({
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    image: item.image || undefined,
+                    interval: item.interval || 'year'
+                }));
+
+                const result = await createCheckoutSession(stripeItems, undefined, undefined, 'subscription');
+                if (result?.url) {
+                    clearCart();
+                    window.location.href = result.url;
+                }
             }
         } catch (error) {
             console.error('Checkout error:', error);
@@ -94,7 +126,7 @@ const FloatingCart: React.FC<FloatingCartProps> = ({ onNavigate }) => {
                     />
 
                     {/* Cart Panel */}
-                    <div className="fixed right-0 top-0 h-full w-full max-w-md z-50 bg-slate-900 border-l border-slate-700 shadow-2xl flex flex-col">
+                    <div className="fixed right-0 top-0 bottom-0 w-full max-w-md z-50 bg-slate-900 border-l border-slate-700 shadow-2xl flex flex-col overflow-hidden">
                         {/* Header */}
                         <div className="p-4 border-b border-slate-700 flex items-center justify-between">
                             <div className="flex items-center gap-3">
@@ -122,7 +154,7 @@ const FloatingCart: React.FC<FloatingCartProps> = ({ onNavigate }) => {
                         </div>
 
                         {/* Cart Items */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
                             {cartItems.length === 0 ? (
                                 <div className="text-center py-12 text-slate-400">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="mx-auto mb-4 opacity-50">

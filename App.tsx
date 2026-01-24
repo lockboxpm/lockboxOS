@@ -17,6 +17,7 @@ import IntakePanel from './components/panels/IntakePanel';
 import StorePanel from './components/panels/StorePanel';
 import RetreatsPanel from './components/panels/RetreatsPanel';
 import LendingPanel from './components/panels/LendingPanel';
+import MyPurchasesPanel from './components/panels/MyPurchasesPanel';
 import ChatWidget from './components/ChatWidget';
 import AuthModal from './components/AuthModal';
 import FloatingCart from './components/FloatingCart';
@@ -45,6 +46,9 @@ const URL_TO_PANEL: Record<string, PanelType> = {
   'contact': 'communicate',
   'communicate': 'communicate',
   'admin': 'admin',
+  'purchases': 'mypurchases',
+  'my-purchases': 'mypurchases',
+  'orders': 'mypurchases',
 };
 
 // Panel ID to preferred URL slug (for consistent URLs)
@@ -63,6 +67,7 @@ const PANEL_TO_URL: Record<PanelType, string> = {
   'integrations': 'integrations',
   'profile': 'my-profile',
   'myprojects': 'my-projects',
+  'mypurchases': 'my-purchases',
   'admin': 'admin',
 };
 
@@ -86,6 +91,7 @@ const getInitialPanel = (): PanelType => {
 const AppContent: React.FC = () => {
   const [activePanel, setActivePanel] = useState<PanelType>(getInitialPanel);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const mainRef = React.useRef<HTMLElement>(null);
 
   // Sync URL when panel changes
   useEffect(() => {
@@ -96,9 +102,21 @@ const AppContent: React.FC = () => {
     }
   }, [activePanel]);
 
-  // Scroll to top on initial mount
+  // Scroll to top on initial mount and panel changes
+  useEffect(() => {
+    // Scroll both the main element and window to top
+    if (mainRef.current) {
+      mainRef.current.scrollTo({ top: 0, behavior: 'instant' });
+    }
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [activePanel]);
+
+  // Ensure scroll to top on initial page load
   useEffect(() => {
     window.scrollTo(0, 0);
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
   }, []);
 
   // Handle browser back/forward buttons
@@ -128,6 +146,7 @@ const AppContent: React.FC = () => {
       case 'lending': return <LendingPanel setActivePanel={setActivePanel} />;
       case 'profile': return <ProfilePanel />;
       case 'myprojects': return <ClientProjectsPanel />;
+      case 'mypurchases': return <MyPurchasesPanel />;
       case 'admin': return <AdminPanel />;
       default: return <HomePanel setActivePanel={setActivePanel} />;
     }
@@ -168,7 +187,7 @@ const AppContent: React.FC = () => {
         />
       </div>
 
-      <main id="main-content" className="relative z-10 flex-1 flex flex-col overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent pt-16 lg:pt-0">
+      <main ref={mainRef} id="main-content" className="relative z-10 flex-1 flex flex-col overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent pt-16 lg:pt-0">
         {/* Current Panel Header (mobile) */}
         <div className="sticky top-0 z-20 bg-slate-900/80 backdrop-blur-md p-3 border-b border-slate-700/50 lg:hidden flex items-center gap-3">
           <div className="text-cyan-400">{activePanelData.icon}</div>

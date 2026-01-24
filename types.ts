@@ -1,6 +1,6 @@
 import type React from 'react';
 
-export type PanelType = 'home' | 'cv' | 'tech-consulting' | 'realestate-consulting' | 'tax' | 'communicate' | 'integrations' | 'clients' | 'intake' | 'store' | 'retreats' | 'lending' | 'profile' | 'myprojects' | 'admin';
+export type PanelType = 'home' | 'cv' | 'tech-consulting' | 'realestate-consulting' | 'tax' | 'communicate' | 'integrations' | 'clients' | 'intake' | 'store' | 'retreats' | 'lending' | 'profile' | 'myprojects' | 'mypurchases' | 'admin';
 
 export interface Panel {
     id: PanelType;
@@ -109,6 +109,53 @@ export interface Product {
 
 export interface CartItem extends Product {
     quantity: number;
+    isRecurring?: boolean;
+    interval?: 'month' | 'year';
+}
+
+// --- PURCHASE & ORDER TYPES ---
+
+export type PurchaseStatus = 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'refunded' | 'cancelled';
+
+export interface ShippingAddress {
+    name: string;
+    line1: string;
+    line2?: string;
+    city: string;
+    state: string;
+    postal_code: string;
+    country: string;
+}
+
+export interface PurchaseItem {
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+    image?: string;
+    category: string;
+    interval?: 'month' | 'year';
+}
+
+export interface Purchase {
+    id: string;
+    userId: string;
+    stripeSessionId?: string;
+    stripeCustomerId?: string;
+    items: PurchaseItem[];
+    subtotal: number;
+    tax?: number;
+    shipping?: number;
+    total: number;
+    status: PurchaseStatus;
+    type: 'one_time' | 'subscription';
+    createdAt: string;
+    updatedAt: string;
+    shippingAddress?: ShippingAddress;
+    trackingNumber?: string;
+    trackingCarrier?: 'usps' | 'ups' | 'fedex' | 'dhl' | 'other';
+    notes?: string;
+    adminNotes?: string;
 }
 
 // --- NEW DYNAMIC TYPES ---
@@ -231,4 +278,12 @@ export interface DataContextType {
     integrationCategories: IntegrationCategory[];
     addIntegrationCategory: (c: IntegrationCategory) => void;
     deleteIntegrationCategory: (id: string) => void;
+
+    // Purchases & Orders
+    purchases: Purchase[];
+    addPurchase: (purchase: Omit<Purchase, 'id' | 'createdAt' | 'updatedAt'>) => Purchase;
+    updatePurchase: (purchaseId: string, updates: Partial<Purchase>) => void;
+    deletePurchase: (purchaseId: string) => void;
+    getUserPurchases: (userId: string) => Purchase[];
+    allPurchases: Purchase[];
 }

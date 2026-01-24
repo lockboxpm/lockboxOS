@@ -12,7 +12,8 @@ import {
 } from '../constants';
 import type {
     Client, ClientScannedData, DataContextType, CartItem, Product, User, Project, Service,
-    Venture, CvExperience, CvEducation, CvSkillCategory, IntegrationCategory, Business, ProjectRequest, ProjectStatus
+    Venture, CvExperience, CvEducation, CvSkillCategory, IntegrationCategory, Business, ProjectRequest, ProjectStatus,
+    Purchase, PurchaseStatus
 } from '../types';
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -80,6 +81,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [cvSkills, setCvSkills] = useState<CvSkillCategory[]>(() => safeParse('lbpm_cv_skills', INITIAL_CV_SKILLS));
     const [integrationCategories, setIntegrationCategories] = useState<IntegrationCategory[]>(() => safeParse('lbpm_integrations', INITIAL_INTEGRATIONS));
 
+    // Purchases State
+    const [purchases, setPurchases] = useState<Purchase[]>(() => safeParse('lbpm_purchases', []));
+
     // Persist state changes
     useEffect(() => {
         try {
@@ -99,6 +103,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     useEffect(() => { localStorage.setItem('lbpm_cv_edu', JSON.stringify(cvEducation)); }, [cvEducation]);
     useEffect(() => { localStorage.setItem('lbpm_cv_skills', JSON.stringify(cvSkills)); }, [cvSkills]);
     useEffect(() => { localStorage.setItem('lbpm_integrations', JSON.stringify(integrationCategories)); }, [integrationCategories]);
+    useEffect(() => { localStorage.setItem('lbpm_purchases', JSON.stringify(purchases)); }, [purchases]);
 
     // ==========================================
     // AUTH & USER MANAGEMENT
@@ -362,6 +367,38 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const addIntegrationCategory = (c: IntegrationCategory) => setIntegrationCategories(prev => [...prev, c]);
     const deleteIntegrationCategory = (id: string) => setIntegrationCategories(prev => prev.filter(c => c.id !== id));
 
+    // ==========================================
+    // PURCHASE MANAGEMENT
+    // ==========================================
+
+    const addPurchase = (purchaseData: Omit<Purchase, 'id' | 'createdAt' | 'updatedAt'>): Purchase => {
+        const now = new Date().toISOString();
+        const newPurchase: Purchase = {
+            ...purchaseData,
+            id: generateId(),
+            createdAt: now,
+            updatedAt: now
+        };
+        setPurchases(prev => [newPurchase, ...prev]);
+        return newPurchase;
+    };
+
+    const updatePurchase = (purchaseId: string, updates: Partial<Purchase>) => {
+        setPurchases(prev => prev.map(p =>
+            p.id === purchaseId ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p
+        ));
+    };
+
+    const deletePurchase = (purchaseId: string) => {
+        setPurchases(prev => prev.filter(p => p.id !== purchaseId));
+    };
+
+    const getUserPurchases = (userId: string): Purchase[] => {
+        return purchases.filter(p => p.userId === userId);
+    };
+
+    const allPurchases = purchases;
+
     return (
         <DataContext.Provider value={{
             // Auth
@@ -382,7 +419,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             cvExperiences, addCvExperience, deleteCvExperience,
             cvEducation, addCvEducation, deleteCvEducation,
             cvSkills, addCvSkillCategory, deleteCvSkillCategory,
-            integrationCategories, addIntegrationCategory, deleteIntegrationCategory
+            integrationCategories, addIntegrationCategory, deleteIntegrationCategory,
+            // Purchases
+            purchases, addPurchase, updatePurchase, deletePurchase, getUserPurchases, allPurchases
         }}>
             {children}
         </DataContext.Provider>
