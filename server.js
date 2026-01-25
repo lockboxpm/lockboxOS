@@ -191,6 +191,63 @@ app.post('/api/send-chat-transcript', async (req, res) => {
     }
 });
 
+// Send Intake Summary/Quote Email
+app.post('/api/send-intake-summary', async (req, res) => {
+    try {
+        const { email, name, company, playbookHtml } = req.body;
+
+        if (!email || !email.includes('@')) {
+            return res.status(400).json({ error: 'Invalid email address' });
+        }
+
+        const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: parseInt(process.env.SMTP_PORT || '587'),
+            secure: false,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASSWORD,
+            },
+        });
+
+        await transporter.sendMail({
+            from: `"Nicholas Kraemer - LockboxPM" <${process.env.SMTP_USER}>`,
+            to: email,
+            subject: `Your Strategy Playbook - ${company}`,
+            html: `
+                <div style="font-family: 'Helvetica', sans-serif; color: #333; max-width: 700px; margin: 0 auto;">
+                    <div style="background: linear-gradient(135deg, #0891b2, #1e40af); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                        <h1 style="color: white; margin: 0;">LockboxPM</h1>
+                        <p style="color: #e0f2fe; margin: 10px 0 0;">Financial Systems & AI Automation Consulting</p>
+                    </div>
+                    <div style="padding: 30px; background: #f8fafc; border: 1px solid #e2e8f0;">
+                        <p>Hi ${name},</p>
+                        <p>Thank you for submitting your project intake. Here's your personalized strategy playbook:</p>
+                        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #e2e8f0;">
+                            ${playbookHtml}
+                        </div>
+                        <p><strong>Ready to get started?</strong></p>
+                        <p>
+                            <a href="https://lockboxpm.com/communicate" style="display: inline-block; background: #0891b2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Schedule a Call</a>
+                        </p>
+                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+                        <p style="font-size: 12px; color: #64748b;">
+                            Nicholas Kraemer | Financial Systems Engineer<br>
+                            Email: nick@lockboxpm.com | Phone: 702-720-4750<br>
+                            www.lockboxpm.com
+                        </p>
+                    </div>
+                </div>
+            `,
+        });
+
+        res.json({ success: true, message: 'Playbook summary sent successfully' });
+    } catch (error) {
+        console.error('Intake summary email error:', error);
+        res.status(500).json({ error: 'Failed to send summary email' });
+    }
+});
+
 // SPA fallback - serve index.html for all other routes
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));

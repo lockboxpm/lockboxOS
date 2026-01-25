@@ -3,6 +3,7 @@ import Panel from '../Panel';
 import { GoogleGenAI } from "@google/genai";
 import { PanelType } from '../../types';
 import { useData } from '../../contexts/DataContext';
+import { SERVICES } from '../../constants';
 import AuthModal from '../AuthModal';
 
 interface IntakePanelProps {
@@ -12,7 +13,7 @@ interface IntakePanelProps {
 type Step = 'welcome' | 'identity' | 'discovery' | 'upload' | 'analysis' | 'result';
 
 const IntakePanel: React.FC<IntakePanelProps> = ({ setActivePanel }) => {
-    const { user } = useData();
+    const { user, addProjectRequest } = useData();
     const [step, setStep] = useState<Step>('welcome');
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [formData, setFormData] = useState({
@@ -28,6 +29,8 @@ const IntakePanel: React.FC<IntakePanelProps> = ({ setActivePanel }) => {
     const [fileType, setFileType] = useState<string>('');
     const [playbookHtml, setPlaybookHtml] = useState<string>('');
     const [isProcessing, setIsProcessing] = useState(false);
+    const [emailSent, setEmailSent] = useState(false);
+    const [sendingEmail, setSendingEmail] = useState(false);
 
     // Pre-fill form if user is logged in
     React.useEffect(() => {
@@ -86,6 +89,11 @@ const IntakePanel: React.FC<IntakePanelProps> = ({ setActivePanel }) => {
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
+            // Build services catalog for AI context
+            const servicesContext = SERVICES.map(s =>
+                `- ${s.title}: ${s.forWho} | Engagement: ${s.engagement}`
+            ).join('\n');
+
             let prompt = `
             You are an expert Business Systems Architect and Financial Consultant named Nick Kraemer.
             Create a professional "Corporate Strategy Playbook" for the following potential client.
@@ -99,19 +107,47 @@ const IntakePanel: React.FC<IntakePanelProps> = ({ setActivePanel }) => {
             Core Problem: ${formData.problem}
             Current Tools: ${formData.tools}
             
+            AVAILABLE SERVICES FROM LOCKBOXPM:
+            ${servicesContext}
+            
+            PRICING STRUCTURE:
+            - Hourly Rate: $175-275/hr based on complexity
+            - Small Project (10-20 hrs): $1,750 - $5,500
+            - Medium Project (40-80 hrs): $7,000 - $22,000  
+            - Large/Ongoing (100+ hrs): Custom retainer
+            - Location Factor: Remote work standard, on-site +15%
+            
             INSTRUCTIONS:
-            Analyze the inputs provided. 
-            Generate a comprehensive, 3-part strategy report in HTML format (use <h2>, <h3>, <ul>, <li>, <p> tags).
-            Do not include <html> or <body> tags, just the content div.
+            Generate a comprehensive strategy report in clean HTML format (use <h2>, <h3>, <ul>, <li>, <p>, <hr> tags).
+            Do not include <html> or <body> tags, just the content.
+            Use <hr> tags between major sections for visual separation.
             
             Structure the report as follows:
-            1. EXECUTIVE SUMMARY: A diagnosis of their situation.
-            2. AUTOMATION & EFFICIENCY: Specific recommendations on how to automate their workflow based on their tools (${formData.tools}).
-            3. FINANCIAL OPTIMIZATION: Strategies to reduce overhead or improve reporting.
-            4. SALES & GROWTH: How to use technology to increase revenue.
-            5. RECOMMENDED NEXT STEPS: A call to action to book a consultation with Nick Kraemer.
             
-            Make the tone professional, authoritative, yet innovative.
+            1. YOUR REQUEST SUMMARY
+            Restate and clarify the client's core problem and goals in 2-3 sentences.
+            
+            2. EXECUTIVE DIAGNOSIS  
+            Analysis of their current situation and pain points.
+            
+            3. RECOMMENDED SOLUTION
+            Match their needs to the most relevant service(s) from the catalog above.
+            Explain why this service fits their situation.
+            
+            4. AUTOMATION & EFFICIENCY OPPORTUNITIES
+            Specific recommendations based on their tools (${formData.tools}).
+            
+            5. ESTIMATED INVESTMENT
+            Based on the complexity of their request, provide:
+            - Recommended service tier (small/medium/large)
+            - Estimated hours range
+            - Estimated cost range using the pricing structure above
+            - Note any factors that could affect pricing
+            
+            6. NEXT STEPS
+            Clear call to action: schedule a discovery call or add recommended service to cart.
+            
+            Make the tone professional, authoritative, yet approachable.
             `;
 
             const parts: any[] = [{ text: prompt }];
@@ -136,7 +172,22 @@ const IntakePanel: React.FC<IntakePanelProps> = ({ setActivePanel }) => {
                 contents: { parts: parts }
             });
 
-            setPlaybookHtml(response.text.replace(/```html/g, '').replace(/```/g, ''));
+            const cleanHtml = response.text.replace(/```html/g, '').replace(/```/g, '');
+            setPlaybookHtml(cleanHtml);
+
+            // Save project to user's dashboard if logged in
+            if (user) {
+                addProjectRequest({
+                    title: `Strategy for ${formData.company}`,
+                    description: formData.problem,
+                    type: 'consulting',
+                    status: 'submitted',
+                    budget: 'TBD',
+                    timeline: formData.goals,
+                    notes: `Tools: ${formData.tools}\n\nGenerated Playbook:\n${cleanHtml.substring(0, 500)}...`
+                });
+            }
+
             setStep('result');
 
         } catch (error) {
@@ -145,6 +196,40 @@ const IntakePanel: React.FC<IntakePanelProps> = ({ setActivePanel }) => {
             setStep('discovery');
         } finally {
             setIsProcessing(false);
+        }
+    };
+
+    // Send email with playbook summary
+    const sendPlaybookEmail = async () => {
+        const emailToUse = user?.email || formData.email;
+        if (!emailToUse) {
+            alert('No email address available. Please log in or enter an email.');
+            return;
+        }
+
+        setSendingEmail(true);
+        try {
+            const response = await fetch('/api/send-intake-summary', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: emailToUse,
+                    name: formData.name,
+                    company: formData.company,
+                    playbookHtml
+                })
+            });
+
+            if (response.ok) {
+                setEmailSent(true);
+            } else {
+                alert('Failed to send email. Please try again.');
+            }
+        } catch (error) {
+            console.error('Email send error:', error);
+            alert('Failed to send email.');
+        } finally {
+            setSendingEmail(false);
         }
     };
 
@@ -269,10 +354,13 @@ const IntakePanel: React.FC<IntakePanelProps> = ({ setActivePanel }) => {
                                 <label className="block text-sm font-mono text-slate-400 mb-1">Company Name</label>
                                 <input type="text" name="company" value={formData.company} onChange={handleInputChange} className="w-full bg-slate-800 border border-slate-700 rounded p-3 text-slate-100 focus:border-cyan-400 focus:outline-none" placeholder="e.g. Acme Corp" />
                             </div>
-                            <div>
-                                <label className="block text-sm font-mono text-slate-400 mb-1">Email Address</label>
-                                <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full bg-slate-800 border border-slate-700 rounded p-3 text-slate-100 focus:border-cyan-400 focus:outline-none" placeholder="john@example.com" />
-                            </div>
+                            {/* Only show email field if not logged in */}
+                            {!user && (
+                                <div>
+                                    <label className="block text-sm font-mono text-slate-400 mb-1">Email Address</label>
+                                    <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full bg-slate-800 border border-slate-700 rounded p-3 text-slate-100 focus:border-cyan-400 focus:outline-none" placeholder="john@example.com" />
+                                </div>
+                            )}
                         </div>
                         <div className="flex justify-between pt-4">
                             {!user && (
@@ -373,6 +461,12 @@ const IntakePanel: React.FC<IntakePanelProps> = ({ setActivePanel }) => {
                             Reviewing {file ? file.name : 'inputs'}...<br />
                             Formulating expense reduction strategy...
                         </p>
+                        <button
+                            onClick={() => { setStep('upload'); setIsProcessing(false); }}
+                            className="mt-6 text-slate-500 hover:text-slate-300 text-sm underline"
+                        >
+                            Cancel and go back
+                        </button>
                     </div>
                 )}
 
@@ -385,8 +479,24 @@ const IntakePanel: React.FC<IntakePanelProps> = ({ setActivePanel }) => {
                                     Strategy Ready
                                 </h2>
                                 <p className="text-slate-400 text-sm">Generated for {formData.company}</p>
+                                {emailSent && (
+                                    <span className="inline-flex items-center gap-1 text-xs text-green-400 mt-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" /></svg>
+                                        Email sent to {user?.email || formData.email}
+                                    </span>
+                                )}
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 flex-wrap">
+                                {!emailSent && (
+                                    <button
+                                        onClick={sendPlaybookEmail}
+                                        disabled={sendingEmail}
+                                        className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-4 py-2 rounded flex items-center gap-2 text-sm"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                        {sendingEmail ? 'Sending...' : 'Email Summary'}
+                                    </button>
+                                )}
                                 <button
                                     onClick={handlePrint}
                                     className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded flex items-center gap-2 text-sm"
@@ -399,7 +509,7 @@ const IntakePanel: React.FC<IntakePanelProps> = ({ setActivePanel }) => {
                                     className="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded flex items-center gap-2 text-sm font-bold"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                                    Execute Strategy (Book Call)
+                                    Schedule Discovery Call
                                 </button>
                             </div>
                         </div>
@@ -408,8 +518,28 @@ const IntakePanel: React.FC<IntakePanelProps> = ({ setActivePanel }) => {
                             <div className="prose prose-slate max-w-none" dangerouslySetInnerHTML={{ __html: playbookHtml }}></div>
                         </div>
 
+                        {/* Service Recommendation Cards */}
+                        <div className="mt-8">
+                            <h3 className="text-lg font-bold text-slate-200 mb-4">Recommended Services</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {SERVICES.slice(0, 2).map((service, idx) => (
+                                    <div key={idx} className="bg-slate-800 border border-slate-700 rounded-lg p-4 hover:border-cyan-500/50 transition-colors">
+                                        <h4 className="font-bold text-cyan-400 text-sm">{service.title}</h4>
+                                        <p className="text-slate-400 text-xs mt-1">{service.forWho}</p>
+                                        <p className="text-slate-500 text-xs mt-2 italic">{service.engagement}</p>
+                                        <button
+                                            onClick={() => setActivePanel('tax')}
+                                            className="mt-3 text-xs bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 px-3 py-1.5 rounded transition-colors"
+                                        >
+                                            View Service →
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
                         <div className="mt-8 text-center">
-                            <button onClick={() => setStep('identity')} className="text-slate-500 hover:text-slate-300 text-sm underline">
+                            <button onClick={() => { setStep('identity'); setEmailSent(false); }} className="text-slate-500 hover:text-slate-300 text-sm underline">
                                 Start New Analysis
                             </button>
                         </div>

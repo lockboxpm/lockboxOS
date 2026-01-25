@@ -13,11 +13,23 @@ const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel, onOpenAu
   const { user, logout, isAdmin } = useData();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Filter panels and reorder: client portal items at top when logged in
+  const clientPanelIds = ['profile', 'myprojects', 'mypurchases'];
+
   const filteredPanels = PANELS.filter((panel) => {
     if (panel.id === 'admin' && !isAdmin) return false;
-    if ((panel.id === 'profile' || panel.id === 'myprojects' || panel.id === 'mypurchases') && !user) return false;
+    if (clientPanelIds.includes(panel.id) && !user) return false;
     return true;
   });
+
+  // Reorder: if logged in, put client panels at top
+  const orderedPanels = user
+    ? [
+      ...filteredPanels.filter(p => clientPanelIds.includes(p.id)),
+      ...filteredPanels.filter(p => !clientPanelIds.includes(p.id) && p.id !== 'admin'),
+      ...filteredPanels.filter(p => p.id === 'admin')
+    ]
+    : filteredPanels;
 
   const handlePanelClick = (panelId: PanelType) => {
     setActivePanel(panelId);
@@ -41,7 +53,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel, onOpenAu
 
       {/* Navigation */}
       <div className="flex-1 py-3 px-2 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700">
-        {filteredPanels.map((panel) => {
+        {orderedPanels.map((panel) => {
           const isActive = activePanel === panel.id;
           return (
             <button

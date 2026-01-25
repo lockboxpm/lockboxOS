@@ -46,7 +46,7 @@ export interface ProjectRequest {
     id: string;
     title: string;
     description: string;
-    type: 'consulting' | 'development' | 'integration' | 'automation' | 'support' | 'other';
+    type: 'consulting' | 'development' | 'integration' | 'automation' | 'support' | 'construction' | 'accounting' | 'corporate' | 'other';
     status: ProjectStatus;
     businessId?: string;
     userId: string;
