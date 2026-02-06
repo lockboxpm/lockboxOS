@@ -154,13 +154,40 @@ app.post('/api/send-cv', async (req, res) => {
     }
 });
 
-// Send Chat Transcript
+// Send Chat Transcript with AI Summary
 app.post('/api/send-chat-transcript', async (req, res) => {
     try {
-        const { sessionId, messages, timestamp } = req.body;
+        const { sessionId, messages, contactInfo, timestamp } = req.body;
 
         if (!messages || !Array.isArray(messages) || messages.length === 0) {
             return res.status(400).json({ error: 'No messages provided' });
+        }
+
+        // Generate AI summary of the conversation
+        let aiSummary = 'Unable to generate summary';
+        try {
+            const { GoogleGenerativeAI } = await import('@google/generative-ai');
+            const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+            const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+            const conversationText = messages.map((msg) =>
+                `${msg.sender === 'ai' ? 'Nick (AI)' : 'Visitor'}: ${msg.text}`
+            ).join('\n');
+
+            const summaryPrompt = `Summarize this sales/consulting chat conversation in 2-3 sentences. Focus on:
+1. What the visitor is looking for
+2. Their pain points or needs
+3. Whether they seem like a qualified lead
+
+Conversation:
+${conversationText}
+
+Summary:`;
+
+            const result = await model.generateContent(summaryPrompt);
+            aiSummary = result.response.text().trim();
+        } catch (summaryError) {
+            console.error('Failed to generate AI summary:', summaryError);
         }
 
         const transporter = nodemailer.createTransport({
@@ -177,11 +204,104 @@ app.post('/api/send-chat-transcript', async (req, res) => {
             `[${msg.sender === 'ai' ? 'Nick (AI)' : 'Visitor'}]: ${msg.text}`
         ).join('\n\n');
 
+        // Format contact info
+        const name = contactInfo?.name || 'Not provided';
+        const email = contactInfo?.email || 'Not provided';
+        const phone = contactInfo?.phone || 'Not provided';
+
+        // Create subject line with name/email if available
+        const subjectName = contactInfo?.name || contactInfo?.email || `Session ${sessionId?.slice(-8) || 'Unknown'}`;
+
         await transporter.sendMail({
             from: `"LockboxPM Chat Bot" <${process.env.SMTP_USER}>`,
             to: 'nick@lockboxpm.com',
-            subject: `💬 New Chat Lead - Session ${sessionId?.slice(-8) || 'Unknown'}`,
-            text: `Session: ${sessionId}\nTime: ${timestamp}\n\n${formattedMessages}`,
+            subject: `💬 New Lead - ${subjectName}`,
+            text: `🔔 NEW CHAT LEAD
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CONTACT INFORMATION
+-------------------
+Name:  ${name}
+Email: ${email}
+Phone: ${phone}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📝 CONVERSATION SUMMARY
+-----------------------
+${aiSummary}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 FULL TRANSCRIPT
+------------------
+Session: ${sessionId}
+Time: ${timestamp}
+
+${formattedMessages}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sent automatically 3 minutes after last message.`,
+            html: `
+                <div style="font-family: 'Helvetica', 'Arial', sans-serif; max-width: 700px; margin: 0 auto; background: #f8fafc;">
+                    <div style="background: linear-gradient(135deg, #0891b2, #1e40af); padding: 24px; text-align: center;">
+                        <h1 style="color: white; margin: 0; font-size: 24px;">🔔 New Chat Lead</h1>
+                    </div>
+                    
+                    <div style="padding: 24px;">
+                        <div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; border-left: 4px solid #0891b2;">
+                            <h2 style="color: #0891b2; margin: 0 0 16px 0; font-size: 18px;">📇 Contact Information</h2>
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="padding: 8px 0; color: #64748b; width: 80px;">Name:</td>
+                                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${name}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; color: #64748b;">Email:</td>
+                                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">
+                                        ${contactInfo?.email ? `<a href="mailto:${email}" style="color: #0891b2;">${email}</a>` : email}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; color: #64748b;">Phone:</td>
+                                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">
+                                        ${contactInfo?.phone ? `<a href="tel:${phone}" style="color: #0891b2;">${phone}</a>` : phone}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; border-left: 4px solid #10b981;">
+                            <h2 style="color: #10b981; margin: 0 0 12px 0; font-size: 18px;">📝 AI Summary</h2>
+                            <p style="color: #374151; line-height: 1.6; margin: 0;">${aiSummary}</p>
+                        </div>
+
+                        <div style="background: white; border-radius: 12px; padding: 20px;">
+                            <h2 style="color: #6366f1; margin: 0 0 12px 0; font-size: 18px;">📋 Full Transcript</h2>
+                            <p style="color: #64748b; font-size: 12px; margin: 0 0 16px 0;">
+                                Session: ${sessionId} | ${timestamp}
+                            </p>
+                            <div style="background: #f1f5f9; border-radius: 8px; padding: 16px;">
+                                ${messages.map((msg) => `
+                                    <div style="margin-bottom: 12px; ${msg.sender === 'user' ? 'text-align: right;' : ''}">
+                                        <span style="display: inline-block; background: ${msg.sender === 'user' ? '#0891b2' : '#e2e8f0'}; color: ${msg.sender === 'user' ? 'white' : '#1e293b'}; padding: 10px 14px; border-radius: 12px; max-width: 80%; text-align: left; font-size: 14px;">
+                                            <strong style="display: block; font-size: 11px; margin-bottom: 4px; opacity: 0.8;">
+                                                ${msg.sender === 'ai' ? 'Nick (AI)' : 'Visitor'}
+                                            </strong>
+                                            ${msg.text}
+                                        </span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; padding: 16px; color: #94a3b8; font-size: 12px;">
+                        Sent automatically 3 minutes after last message | LockboxPM Chat Bot
+                    </div>
+                </div>
+            `,
         });
 
         res.json({ success: true, message: 'Transcript sent successfully' });

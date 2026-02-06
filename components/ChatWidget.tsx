@@ -1,15 +1,51 @@
-import React, { useState, useRef, useEffect } from 'react';
-import type { ChatMessage } from '../types';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import type { ChatMessage, VisitorContact } from '../types';
 import { GoogleGenAI } from "@google/genai";
 
 // Nick's photo - using actual headshot
 const NICK_PHOTO = "/headshot_nick.png";
 const CHAT_STORAGE_KEY = 'lbpm_chat_session';
 const SESSION_ID_KEY = 'lbpm_chat_session_id';
+const CONTACT_STORAGE_KEY = 'lbpm_visitor_contact';
+const TRANSCRIPT_DELAY_MS = 3 * 60 * 1000; // 3 minutes
 
 interface ChatWidgetProps {
   onNavigate?: (panel: string) => void;
 }
+
+// Regex patterns for extracting contact info
+const extractContactInfo = (text: string, currentContact: VisitorContact): VisitorContact => {
+  const updated = { ...currentContact };
+
+  // Email pattern
+  const emailMatch = text.match(/[\w.-]+@[\w.-]+\.\w{2,}/i);
+  if (emailMatch && !updated.email) {
+    updated.email = emailMatch[0].toLowerCase();
+  }
+
+  // Phone pattern (various formats)
+  const phoneMatch = text.match(/(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}/);
+  if (phoneMatch && !updated.phone) {
+    updated.phone = phoneMatch[0].replace(/[^\d+]/g, '');
+  }
+
+  // Name extraction is trickier - we'll let the AI handle explicit name mentions
+  // Look for patterns like "I'm [Name]", "My name is [Name]", "This is [Name]"
+  const namePatterns = [
+    /(?:my name is|i'm|i am|this is|call me)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/i,
+    /^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+here/i,
+  ];
+
+  for (const pattern of namePatterns) {
+    const nameMatch = text.match(pattern);
+    if (nameMatch && nameMatch[1] && !updated.name) {
+      updated.name = nameMatch[1].trim();
+      break;
+    }
+  }
+
+  return updated;
+};
 
 const ChatWidget: React.FC<ChatWidgetProps> = ({ onNavigate }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,8 +54,10 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onNavigate }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string>('');
   const [emailSent, setEmailSent] = useState(false);
+  const [contactInfo, setContactInfo] = useState<VisitorContact>({});
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const transcriptTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Generate or retrieve session ID
   useEffect(() => {
@@ -42,6 +80,16 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onNavigate }) => {
         console.error('Failed to parse saved chat:', e);
       }
     }
+
+    // Load saved contact info
+    const savedContact = localStorage.getItem(CONTACT_STORAGE_KEY);
+    if (savedContact) {
+      try {
+        setContactInfo(JSON.parse(savedContact));
+      } catch (e) {
+        console.error('Failed to parse saved contact:', e);
+      }
+    }
   }, []);
 
   // Save messages to localStorage whenever they change
@@ -51,23 +99,21 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onNavigate }) => {
     }
   }, [messages]);
 
+  // Save contact info whenever it changes
+  useEffect(() => {
+    if (contactInfo.name || contactInfo.email || contactInfo.phone) {
+      localStorage.setItem(CONTACT_STORAGE_KEY, JSON.stringify(contactInfo));
+    }
+  }, [contactInfo]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(scrollToBottom, [messages]);
 
-  useEffect(() => {
-    if (isOpen && messages.length === 0) {
-      setMessages([{
-        sender: 'ai',
-        text: "Hi! I'm Nick. 👋 Tell me a bit about yourself — where are you from, what's your business, and what challenges are you facing? I help with financial systems, AI automation, tax strategy, and even corporate retreats in Costa Rica."
-      }]);
-    }
-  }, [isOpen, messages.length]);
-
   // Send chat transcript via email
-  const sendChatTranscript = async () => {
+  const sendChatTranscript = useCallback(async () => {
     if (emailSent || messages.length < 3) return; // Only send if meaningful conversation
 
     try {
@@ -77,6 +123,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onNavigate }) => {
         body: JSON.stringify({
           sessionId,
           messages,
+          contactInfo,
           timestamp: new Date().toISOString()
         })
       });
@@ -88,10 +135,56 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onNavigate }) => {
     } catch (error) {
       console.error('Failed to send chat transcript:', error);
     }
-  };
+  }, [emailSent, messages, sessionId, contactInfo]);
+
+  // Clear any existing transcript timer
+  const clearTranscriptTimer = useCallback(() => {
+    if (transcriptTimerRef.current) {
+      clearTimeout(transcriptTimerRef.current);
+      transcriptTimerRef.current = null;
+    }
+  }, []);
+
+  // Start/reset the 3-minute transcript timer
+  const resetTranscriptTimer = useCallback(() => {
+    clearTranscriptTimer();
+
+    // Only set timer if we have a meaningful conversation and haven't sent yet
+    if (messages.length >= 2 && !emailSent) {
+      transcriptTimerRef.current = setTimeout(() => {
+        console.log('3-minute timer fired, sending chat transcript...');
+        sendChatTranscript();
+      }, TRANSCRIPT_DELAY_MS);
+    }
+  }, [messages.length, emailSent, sendChatTranscript, clearTranscriptTimer]);
+
+  // Reset timer whenever messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      resetTranscriptTimer();
+    }
+
+    return () => clearTranscriptTimer();
+  }, [messages, resetTranscriptTimer, clearTranscriptTimer]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => clearTranscriptTimer();
+  }, [clearTranscriptTimer]);
+
+  useEffect(() => {
+    if (isOpen && messages.length === 0) {
+      setMessages([{
+        sender: 'ai',
+        text: "Hi! I'm Nick. 👋 Tell me a bit about yourself — what's your name, and what brings you here today? I help with financial systems, AI automation, tax strategy, and even corporate retreats in Costa Rica.",
+        timestamp: new Date().toISOString()
+      }]);
+    }
+  }, [isOpen, messages.length]);
 
   // Handle closing chat - send transcript if meaningful conversation
   const handleClose = () => {
+    clearTranscriptTimer();
     if (messages.length >= 3 && !emailSent) {
       sendChatTranscript();
     }
@@ -100,10 +193,13 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onNavigate }) => {
 
   // Clear chat and start fresh
   const handleClearChat = () => {
+    clearTranscriptTimer();
     sendChatTranscript(); // Send transcript before clearing
     localStorage.removeItem(CHAT_STORAGE_KEY);
     localStorage.removeItem(SESSION_ID_KEY);
+    localStorage.removeItem(CONTACT_STORAGE_KEY);
     setMessages([]);
+    setContactInfo({});
     setEmailSent(false);
     // Generate new session ID
     const newId = `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -113,6 +209,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onNavigate }) => {
 
   // Navigate to Communications tab
   const handleTalkToHuman = () => {
+    clearTranscriptTimer();
     sendChatTranscript(); // Send transcript before navigating
     setIsOpen(false);
     if (onNavigate) {
@@ -131,20 +228,41 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onNavigate }) => {
       }
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
+      // Build conversation context
+      const conversationContext = messages.map(m =>
+        `${m.sender === 'ai' ? 'Nick' : 'Visitor'}: ${m.text}`
+      ).join('\n');
+
+      const hasName = !!contactInfo.name;
+      const hasEmail = !!contactInfo.email;
+      const hasPhone = !!contactInfo.phone;
+
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: message,
+        contents: `Previous conversation:\n${conversationContext}\n\nVisitor: ${message}`,
         config: {
           systemInstruction: `You are Nicholas Kraemer, a financial and AI consultant based in Costa Rica.
-              Have a warm, conversational tone. Your goal is to learn about the visitor:
-              - Where they're from and their contact info
+              Have a warm, conversational tone. Your goal is to learn about the visitor and gather their contact info.
+              
+              IMPORTANT: You should naturally collect the visitor's contact information:
+              ${!hasName ? '- Ask for their name if they haven\'t provided it' : ''}
+              ${!hasEmail ? '- Ask for their email so you can follow up' : ''}
+              ${!hasPhone ? '- Optionally ask for their phone number for a quick call' : ''}
+              
+              ${hasName ? `You know their name is: ${contactInfo.name}` : ''}
+              ${hasEmail ? `You have their email: ${contactInfo.email}` : ''}
+              ${hasPhone ? `You have their phone: ${contactInfo.phone}` : ''}
+              
+              Learn about:
               - What their business does
               - Pain points they're experiencing
               - Whether they need consulting, retreats, tax help, or other life/business architecture
               
               Keep responses concise and friendly. If they seem like a good fit, 
-              encourage them to schedule a call or share their email for follow-up.
-              Be helpful but also qualify leads - not everyone is a fit.`,
+              encourage them to share their email for follow-up or schedule a call.
+              Be helpful but also qualify leads - not everyone is a fit.
+              
+              Don't be pushy about contact info - weave it naturally into conversation.`,
         }
       });
 
@@ -162,12 +280,26 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onNavigate }) => {
     const textToSend = messageText || input;
     if (!textToSend.trim()) return;
 
-    const userMessage: ChatMessage = { sender: 'user', text: textToSend };
+    // Extract contact info from user message
+    const updatedContact = extractContactInfo(textToSend, contactInfo);
+    if (JSON.stringify(updatedContact) !== JSON.stringify(contactInfo)) {
+      setContactInfo(updatedContact);
+    }
+
+    const userMessage: ChatMessage = {
+      sender: 'user',
+      text: textToSend,
+      timestamp: new Date().toISOString()
+    };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
 
     const aiResponseText = await callAIEndpoint(textToSend);
-    const aiMessage: ChatMessage = { sender: 'ai', text: aiResponseText };
+    const aiMessage: ChatMessage = {
+      sender: 'ai',
+      text: aiResponseText,
+      timestamp: new Date().toISOString()
+    };
     setMessages(prev => [...prev, aiMessage]);
   };
 

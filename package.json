@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@google/genai": "^1.29.1",
+    "@google/generative-ai": "^0.24.1",
     "@types/nodemailer": "^7.0.4",
     "express": "^4.22.1",
     "nodemailer": "^7.0.12",

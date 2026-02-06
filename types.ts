@@ -79,6 +79,13 @@ export interface Service {
 export interface ChatMessage {
     sender: 'user' | 'ai';
     text: string;
+    timestamp?: string;  // ISO timestamp for tracking when messages were sent
+}
+
+export interface VisitorContact {
+    name?: string;
+    email?: string;
+    phone?: string;
 }
 
 export interface ClientScannedData {
