@@ -53,7 +53,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onNavigate }) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string>('');
-  const [emailSent, setEmailSent] = useState(false);
+  const lastSentCountRef = useRef<number>(0);
   const [contactInfo, setContactInfo] = useState<VisitorContact>({});
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -114,7 +114,8 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onNavigate }) => {
 
   // Send chat transcript via email
   const sendChatTranscript = useCallback(async () => {
-    if (emailSent || messages.length < 3) return; // Only send if meaningful conversation
+    // Only send if meaningful conversation and there are new messages since last send
+    if (messages.length < 3 || messages.length <= lastSentCountRef.current) return;
 
     try {
       const response = await fetch('/api/send-chat-transcript', {
@@ -129,13 +130,13 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onNavigate }) => {
       });
 
       if (response.ok) {
-        setEmailSent(true);
+        lastSentCountRef.current = messages.length;
         console.log('Chat transcript sent successfully');
       }
     } catch (error) {
       console.error('Failed to send chat transcript:', error);
     }
-  }, [emailSent, messages, sessionId, contactInfo]);
+  }, [messages, sessionId, contactInfo]);
 
   // Clear any existing transcript timer
   const clearTranscriptTimer = useCallback(() => {
@@ -149,14 +150,14 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onNavigate }) => {
   const resetTranscriptTimer = useCallback(() => {
     clearTranscriptTimer();
 
-    // Only set timer if we have a meaningful conversation and haven't sent yet
-    if (messages.length >= 2 && !emailSent) {
+    // Set timer if we have a meaningful conversation and there are new messages since last send
+    if (messages.length >= 2 && messages.length > lastSentCountRef.current) {
       transcriptTimerRef.current = setTimeout(() => {
         console.log('3-minute timer fired, sending chat transcript...');
         sendChatTranscript();
       }, TRANSCRIPT_DELAY_MS);
     }
-  }, [messages.length, emailSent, sendChatTranscript, clearTranscriptTimer]);
+  }, [messages.length, sendChatTranscript, clearTranscriptTimer]);
 
   // Reset timer whenever messages change
   useEffect(() => {
@@ -185,7 +186,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onNavigate }) => {
   // Handle closing chat - send transcript if meaningful conversation
   const handleClose = () => {
     clearTranscriptTimer();
-    if (messages.length >= 3 && !emailSent) {
+    if (messages.length >= 3 && messages.length > lastSentCountRef.current) {
       sendChatTranscript();
     }
     setIsOpen(false);
@@ -200,7 +201,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onNavigate }) => {
     localStorage.removeItem(CONTACT_STORAGE_KEY);
     setMessages([]);
     setContactInfo({});
-    setEmailSent(false);
+    lastSentCountRef.current = 0;
     // Generate new session ID
     const newId = `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     localStorage.setItem(SESSION_ID_KEY, newId);
