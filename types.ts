@@ -20,6 +20,7 @@ export interface User {
     // Linked data
     businesses: Business[];
     projectRequests: ProjectRequest[];
+    chatSessions?: ChatSession[];
 }
 
 export interface Business {
@@ -86,6 +87,16 @@ export interface VisitorContact {
     name?: string;
     email?: string;
     phone?: string;
+}
+
+export interface ChatSession {
+    id: string;
+    userId: string;
+    messages: ChatMessage[];
+    contactInfo: VisitorContact;
+    startedAt: string;
+    lastMessageAt: string;
+    summary?: string;
 }
 
 export interface ClientScannedData {
@@ -293,4 +304,9 @@ export interface DataContextType {
     deletePurchase: (purchaseId: string) => void;
     getUserPurchases: (userId: string) => Purchase[];
     allPurchases: Purchase[];
+
+    // Chat Sessions
+    allChatSessions: ChatSession[];
+    saveChatSession: (session: ChatSession) => void;
+    getChatSessionsForUser: (userId: string) => ChatSession[];
 }

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import type { ChatMessage, VisitorContact } from '../types';
+import type { ChatMessage, VisitorContact, ChatSession } from '../types';
 import { GoogleGenAI } from "@google/genai";
+import { useData } from '../contexts/DataContext';
 
 // Nick's photo - using actual headshot
 const NICK_PHOTO = "/headshot_nick.png";
@@ -55,11 +56,14 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onNavigate }) => {
   const [sessionId, setSessionId] = useState<string>('');
   const lastSentCountRef = useRef<number>(0);
   const [contactInfo, setContactInfo] = useState<VisitorContact>({});
+  const initialLoadDone = useRef(false);
+
+  const { user, saveChatSession, getChatSessionsForUser } = useData();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const transcriptTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Generate or retrieve session ID
+  // Generate or retrieve session ID and load saved messages from localStorage
   useEffect(() => {
     let id = localStorage.getItem(SESSION_ID_KEY);
     if (!id) {
@@ -68,7 +72,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onNavigate }) => {
     }
     setSessionId(id);
 
-    // Load saved messages
+    // Always load from localStorage first (reliable baseline)
     const savedMessages = localStorage.getItem(CHAT_STORAGE_KEY);
     if (savedMessages) {
       try {
@@ -90,14 +94,49 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onNavigate }) => {
         console.error('Failed to parse saved contact:', e);
       }
     }
+    initialLoadDone.current = true;
   }, []);
 
-  // Save messages to localStorage whenever they change
+  // When user logs in, check DataContext for their saved sessions and load if fresher
   useEffect(() => {
-    if (messages.length > 0) {
+    if (!user || !initialLoadDone.current) return;
+
+    const userSessions = getChatSessionsForUser(user.id);
+    if (userSessions.length > 0) {
+      const latest = userSessions.sort((a, b) =>
+        new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()
+      )[0];
+      if (latest.messages.length > 0) {
+        setMessages(latest.messages);
+        setContactInfo(latest.contactInfo || {});
+        setSessionId(latest.id);
+        localStorage.setItem(SESSION_ID_KEY, latest.id);
+        localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(latest.messages));
+      }
+    }
+  }, [user?.id]);
+
+  // Save messages to localStorage AND DataContext whenever they change
+  useEffect(() => {
+    if (messages.length > 0 && initialLoadDone.current) {
       localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
     }
   }, [messages]);
+
+  // Sync to DataContext when messages, contact info, or session change (for logged-in users)
+  useEffect(() => {
+    if (messages.length > 0 && user && sessionId && initialLoadDone.current) {
+      const session: ChatSession = {
+        id: sessionId,
+        userId: user.id,
+        messages,
+        contactInfo,
+        startedAt: messages[0]?.timestamp || new Date().toISOString(),
+        lastMessageAt: messages[messages.length - 1]?.timestamp || new Date().toISOString(),
+      };
+      saveChatSession(session);
+    }
+  }, [messages, contactInfo, user, sessionId, saveChatSession]);
 
   // Save contact info whenever it changes
   useEffect(() => {

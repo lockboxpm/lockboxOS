@@ -13,7 +13,7 @@ import {
 import type {
     Client, ClientScannedData, DataContextType, CartItem, Product, User, Project, Service,
     Venture, CvExperience, CvEducation, CvSkillCategory, IntegrationCategory, Business, ProjectRequest, ProjectStatus,
-    Purchase, PurchaseStatus
+    Purchase, PurchaseStatus, ChatSession
 } from '../types';
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -84,6 +84,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Purchases State
     const [purchases, setPurchases] = useState<Purchase[]>(() => safeParse('lbpm_purchases', []));
 
+    // Chat Sessions State
+    const [chatSessions, setChatSessions] = useState<ChatSession[]>(() => safeParse('lbpm_chat_sessions', []));
+
     // Persist state changes
     useEffect(() => {
         try {
@@ -104,6 +107,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     useEffect(() => { localStorage.setItem('lbpm_cv_skills', JSON.stringify(cvSkills)); }, [cvSkills]);
     useEffect(() => { localStorage.setItem('lbpm_integrations', JSON.stringify(integrationCategories)); }, [integrationCategories]);
     useEffect(() => { localStorage.setItem('lbpm_purchases', JSON.stringify(purchases)); }, [purchases]);
+    useEffect(() => { localStorage.setItem('lbpm_chat_sessions', JSON.stringify(chatSessions)); }, [chatSessions]);
 
     // ==========================================
     // AUTH & USER MANAGEMENT
@@ -399,6 +403,28 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const allPurchases = purchases;
 
+    // ==========================================
+    // CHAT SESSION MANAGEMENT
+    // ==========================================
+
+    const saveChatSession = (session: ChatSession) => {
+        setChatSessions(prev => {
+            const idx = prev.findIndex(s => s.id === session.id);
+            if (idx >= 0) {
+                const updated = [...prev];
+                updated[idx] = session;
+                return updated;
+            }
+            return [...prev, session];
+        });
+    };
+
+    const getChatSessionsForUser = (userId: string): ChatSession[] => {
+        return chatSessions.filter(s => s.userId === userId);
+    };
+
+    const allChatSessions = chatSessions;
+
     return (
         <DataContext.Provider value={{
             // Auth
@@ -421,7 +447,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             cvSkills, addCvSkillCategory, deleteCvSkillCategory,
             integrationCategories, addIntegrationCategory, deleteIntegrationCategory,
             // Purchases
-            purchases, addPurchase, updatePurchase, deletePurchase, getUserPurchases, allPurchases
+            purchases, addPurchase, updatePurchase, deletePurchase, getUserPurchases, allPurchases,
+            // Chat Sessions
+            allChatSessions, saveChatSession, getChatSessionsForUser
         }}>
             {children}
         </DataContext.Provider>

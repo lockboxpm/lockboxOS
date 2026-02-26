@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Panel from '../Panel';
 import { useData } from '../../contexts/DataContext';
-import type { ProjectStatus, User, Purchase, PurchaseStatus } from '../../types';
+import type { ProjectStatus, User, Purchase, PurchaseStatus, ChatSession } from '../../types';
 
 const STATUS_CONFIG: Record<ProjectStatus, { label: string; color: string; bg: string }> = {
     draft: { label: 'Draft', color: 'text-slate-400', bg: 'bg-slate-500/20' },
@@ -59,12 +59,14 @@ const UserRow: React.FC<{
 );
 
 const AdminPanel: React.FC = () => {
-    const { user, isAdmin, allUsers, allProjectRequests, updateUserRole, updateProjectStatus, allPurchases, updatePurchase } = useData();
-    const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'projects' | 'orders'>('overview');
+    const { user, isAdmin, allUsers, allProjectRequests, updateUserRole, updateProjectStatus, allPurchases, updatePurchase, allChatSessions } = useData();
+    const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'projects' | 'orders' | 'chats'>('overview');
     const [projectFilter, setProjectFilter] = useState<'all' | ProjectStatus>('all');
     const [orderFilter, setOrderFilter] = useState<'all' | PurchaseStatus>('all');
     const [editingTracking, setEditingTracking] = useState<string | null>(null);
     const [trackingInput, setTrackingInput] = useState('');
+    const [selectedChatSession, setSelectedChatSession] = useState<ChatSession | null>(null);
+    const [chatUserFilter, setChatUserFilter] = useState<string>('all');
 
     if (!user || !isAdmin) {
         return (
@@ -94,7 +96,8 @@ const AdminPanel: React.FC = () => {
         totalBusinesses: allUsers.reduce((acc, u) => acc + (u.businesses?.length || 0), 0),
         totalOrders: allPurchases.length,
         pendingOrders: allPurchases.filter(p => p.status === 'pending' || p.status === 'paid').length,
-        totalRevenue: allPurchases.filter(p => p.status !== 'cancelled' && p.status !== 'refunded').reduce((acc, p) => acc + p.total, 0)
+        totalRevenue: allPurchases.filter(p => p.status !== 'cancelled' && p.status !== 'refunded').reduce((acc, p) => acc + p.total, 0),
+        totalChats: allChatSessions.length
     };
 
     const filteredOrders = orderFilter === 'all'
@@ -116,7 +119,7 @@ const AdminPanel: React.FC = () => {
 
                 {/* Tab Navigation */}
                 <div className="flex gap-2 border-b border-slate-700 pb-2 overflow-x-auto">
-                    {(['overview', 'orders', 'users', 'projects'] as const).map(tab => (
+                    {(['overview', 'orders', 'users', 'projects', 'chats'] as const).map(tab => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
@@ -125,7 +128,7 @@ const AdminPanel: React.FC = () => {
                                 : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
                                 }`}
                         >
-                            {tab === 'orders' ? `Orders (${stats.pendingOrders})` : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                            {tab === 'orders' ? `Orders (${stats.pendingOrders})` : tab === 'chats' ? `Chats (${stats.totalChats})` : tab.charAt(0).toUpperCase() + tab.slice(1)}
                         </button>
                     ))}
                 </div>
@@ -455,6 +458,191 @@ const AdminPanel: React.FC = () => {
                                     })
                             )}
                         </div>
+                    </div>
+                )}
+
+                {/* Chats Tab */}
+                {activeTab === 'chats' && (
+                    <div className="space-y-4">
+                        {/* Back button if viewing a session */}
+                        {selectedChatSession ? (
+                            <div className="space-y-4">
+                                <button
+                                    onClick={() => setSelectedChatSession(null)}
+                                    className="flex items-center gap-2 text-sm text-slate-400 hover:text-cyan-400 transition-colors"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                                    Back to all chats
+                                </button>
+
+                                {/* Session Header */}
+                                <div className="p-5 bg-slate-800/50 rounded-xl border border-slate-700">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-lg font-bold text-white">
+                                                {(() => {
+                                                    const chatOwner = allUsers.find(u => u.id === selectedChatSession.userId);
+                                                    return chatOwner ? chatOwner.username.charAt(0).toUpperCase() : '?';
+                                                })()}
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-white">
+                                                    {allUsers.find(u => u.id === selectedChatSession.userId)?.username || 'Anonymous'}
+                                                </p>
+                                                <p className="text-xs text-slate-500">
+                                                    Session: {selectedChatSession.id.slice(-12)} • {selectedChatSession.messages.length} messages
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right text-xs text-slate-500">
+                                            <p>Started: {new Date(selectedChatSession.startedAt).toLocaleString()}</p>
+                                            <p>Last msg: {new Date(selectedChatSession.lastMessageAt).toLocaleString()}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Contact Info */}
+                                    {(selectedChatSession.contactInfo?.name || selectedChatSession.contactInfo?.email || selectedChatSession.contactInfo?.phone) && (
+                                        <div className="mt-3 p-3 bg-cyan-500/10 rounded-lg border border-cyan-500/20">
+                                            <p className="text-xs font-semibold text-cyan-400 mb-2">📇 Extracted Contact Info</p>
+                                            <div className="flex flex-wrap gap-4 text-sm">
+                                                {selectedChatSession.contactInfo.name && (
+                                                    <span className="text-slate-300"><span className="text-slate-500">Name:</span> {selectedChatSession.contactInfo.name}</span>
+                                                )}
+                                                {selectedChatSession.contactInfo.email && (
+                                                    <span className="text-slate-300"><span className="text-slate-500">Email:</span> {selectedChatSession.contactInfo.email}</span>
+                                                )}
+                                                {selectedChatSession.contactInfo.phone && (
+                                                    <span className="text-slate-300"><span className="text-slate-500">Phone:</span> {selectedChatSession.contactInfo.phone}</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* AI Summary */}
+                                    {selectedChatSession.summary && (
+                                        <div className="mt-3 p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                                            <p className="text-xs font-semibold text-green-400 mb-1">📝 AI Summary</p>
+                                            <p className="text-sm text-slate-300">{selectedChatSession.summary}</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Interactive Transcript */}
+                                <div className="p-5 bg-slate-800/50 rounded-xl border border-slate-700">
+                                    <h3 className="font-semibold text-white mb-4">💬 Full Transcript</h3>
+                                    <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-700">
+                                        {selectedChatSession.messages.map((msg, index) => (
+                                            <div key={index} className={`flex items-end gap-2 ${msg.sender === 'user' ? 'justify-end' : ''}`}>
+                                                {msg.sender === 'ai' && (
+                                                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-xs font-bold text-white shrink-0">N</div>
+                                                )}
+                                                <div className={`max-w-[75%] p-3 rounded-lg ${msg.sender === 'user' ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-300'}`}>
+                                                    <p className="text-sm">{msg.text}</p>
+                                                    {msg.timestamp && (
+                                                        <p className={`text-[10px] mt-1 ${msg.sender === 'user' ? 'text-cyan-200/60' : 'text-slate-500'}`}>
+                                                            {new Date(msg.timestamp).toLocaleTimeString()}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                {msg.sender === 'user' && (
+                                                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-xs font-bold text-white shrink-0">
+                                                        {(() => {
+                                                            const chatOwner = allUsers.find(u => u.id === selectedChatSession.userId);
+                                                            return chatOwner ? chatOwner.username.charAt(0).toUpperCase() : 'V';
+                                                        })()}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            /* Chat Session List */
+                            <>
+                                {/* User Filter */}
+                                <div className="flex items-center gap-3">
+                                    <label className="text-sm text-slate-400">Filter by user:</label>
+                                    <select
+                                        value={chatUserFilter}
+                                        onChange={(e) => setChatUserFilter(e.target.value)}
+                                        className="bg-slate-700 border border-slate-600 rounded px-3 py-1.5 text-sm text-white"
+                                    >
+                                        <option value="all">All Users</option>
+                                        {allUsers.map(u => (
+                                            <option key={u.id} value={u.id}>{u.username}</option>
+                                        ))}
+                                    </select>
+                                    <span className="text-xs text-slate-500 ml-auto">{allChatSessions.length} total sessions</span>
+                                </div>
+
+                                {/* Sessions List */}
+                                <div className="space-y-3">
+                                    {(() => {
+                                        const filtered = chatUserFilter === 'all'
+                                            ? allChatSessions
+                                            : allChatSessions.filter(s => s.userId === chatUserFilter);
+                                        const sorted = [...filtered].sort((a, b) =>
+                                            new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()
+                                        );
+
+                                        if (sorted.length === 0) {
+                                            return (
+                                                <div className="p-8 text-center bg-slate-800/30 rounded-xl border border-dashed border-slate-600">
+                                                    <div className="text-4xl mb-3">💬</div>
+                                                    <p className="text-slate-400">No chat sessions found</p>
+                                                    <p className="text-sm text-slate-500 mt-2">Chat sessions will appear here as users interact with the chat widget</p>
+                                                </div>
+                                            );
+                                        }
+
+                                        return sorted.map(session => {
+                                            const chatOwner = allUsers.find(u => u.id === session.userId);
+                                            const userMsgCount = session.messages.filter(m => m.sender === 'user').length;
+                                            const lastUserMsg = [...session.messages].reverse().find(m => m.sender === 'user');
+
+                                            return (
+                                                <button
+                                                    key={session.id}
+                                                    onClick={() => setSelectedChatSession(session)}
+                                                    className="w-full text-left p-4 bg-slate-800/50 rounded-xl border border-slate-700 hover:border-cyan-500/40 hover:bg-slate-800/80 transition-all group"
+                                                >
+                                                    <div className="flex items-start justify-between gap-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-lg font-bold text-white">
+                                                                {chatOwner ? chatOwner.username.charAt(0).toUpperCase() : '?'}
+                                                            </div>
+                                                            <div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="font-semibold text-white group-hover:text-cyan-400 transition-colors">
+                                                                        {chatOwner?.username || 'Anonymous'}
+                                                                    </span>
+                                                                    <span className="text-xs px-2 py-0.5 rounded-full bg-slate-600/50 text-slate-400">
+                                                                        {session.messages.length} msgs
+                                                                    </span>
+                                                                    {(session.contactInfo?.email || session.contactInfo?.phone) && (
+                                                                        <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">📇 contact</span>
+                                                                    )}
+                                                                </div>
+                                                                {lastUserMsg && (
+                                                                    <p className="text-sm text-slate-400 line-clamp-1 mt-0.5">
+                                                                        "{lastUserMsg.text}"
+                                                                    </p>
+                                                                )}
+                                                                <p className="text-xs text-slate-500 mt-1">
+                                                                    {userMsgCount} user messages • {new Date(session.lastMessageAt).toLocaleString()}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-600 group-hover:text-cyan-400 transition-colors shrink-0 mt-1"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                                    </div>
+                                                </button>
+                                            );
+                                        });
+                                    })()}
+                                </div>
+                            </>
+                        )}
                     </div>
                 )}
             </div>
