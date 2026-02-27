@@ -214,7 +214,7 @@ Summary:`;
 
         await transporter.sendMail({
             from: `"LockboxPM Chat Bot" <${process.env.SMTP_USER}>`,
-            to: 'nick@lockboxpm.com',
+            to: 'njkraemer@gmail.com',
             subject: `💬 New Lead - ${subjectName}`,
             text: `🔔 NEW CHAT LEAD
 

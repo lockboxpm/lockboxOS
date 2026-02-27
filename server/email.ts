@@ -178,7 +178,7 @@ Web: https://lockboxpm.com
 
                         const mailOptions = {
                             from: `"LockboxPM Chat Bot" <${process.env.SMTP_USER}>`,
-                            to: 'nick@lockboxpm.com',
+                            to: 'njkraemer@gmail.com',
                             subject: `💬 New Chat Lead - Session ${sessionId?.slice(-8) || 'Unknown'}`,
                             html: `
 <!DOCTYPE html>
