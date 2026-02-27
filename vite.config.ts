@@ -9,12 +9,17 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
 
   // Make API keys available to server middleware
-  process.env.STRIPE_API_SECRET_KEY = env.STRIPE_API_SECRET_KEY;
-  process.env.SMTP_HOST = env.SMTP_HOST;
-  process.env.SMTP_PORT = env.SMTP_PORT;
-  process.env.SMTP_USER = env.SMTP_USER;
-  process.env.SMTP_PASSWORD = env.SMTP_PASSWORD;
-  process.env.PRINTFUL_API_KEY = env.PRINTFUL_API_KEY;
+  // Use loadEnv (reads .env files) with process.env fallback (for Coolify/Docker runtime vars)
+  process.env.STRIPE_API_SECRET_KEY = env.STRIPE_API_SECRET_KEY || process.env.STRIPE_API_SECRET_KEY || '';
+  process.env.SMTP_HOST = env.SMTP_HOST || process.env.SMTP_HOST || '';
+  process.env.SMTP_PORT = env.SMTP_PORT || process.env.SMTP_PORT || '587';
+  process.env.SMTP_USER = env.SMTP_USER || process.env.SMTP_USER || '';
+  process.env.SMTP_PASSWORD = env.SMTP_PASSWORD || process.env.SMTP_PASSWORD || '';
+  process.env.PRINTFUL_API_KEY = env.PRINTFUL_API_KEY || process.env.PRINTFUL_API_KEY || '';
+
+  // Resolve keys for client-side define block (build-time baked values)
+  const geminiKey = env.GEMINI_API_KEY || process.env.GEMINI_API_KEY || '';
+  const stripePublishableKey = env.STRIPE_PUBLISHABLE_KEY || process.env.STRIPE_PUBLISHABLE_KEY || '';
 
   return {
     server: {
@@ -28,10 +33,10 @@ export default defineConfig(({ mode }) => {
       printfulPlugin()
     ],
     define: {
-      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+      'process.env.API_KEY': JSON.stringify(geminiKey),
+      'process.env.GEMINI_API_KEY': JSON.stringify(geminiKey),
       'process.env.PRINTFUL_STORE_ID': JSON.stringify('17464534'),
-      'process.env.STRIPE_PUBLISHABLE_KEY': JSON.stringify(env.STRIPE_PUBLISHABLE_KEY)
+      'process.env.STRIPE_PUBLISHABLE_KEY': JSON.stringify(stripePublishableKey)
     },
     resolve: {
       alias: {
