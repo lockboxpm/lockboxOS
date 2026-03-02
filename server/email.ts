@@ -177,7 +177,7 @@ Web: https://lockboxpm.com
                         });
 
                         const mailOptions = {
-                            from: `"LockboxPM Chat Bot" <${process.env.SMTP_USER}>`,
+                            from: `"Lockbox Portfolio Management Chat Bot" <${process.env.SMTP_USER}>`,
                             to: 'njkraemer@gmail.com',
                             subject: `💬 New Chat Lead - Session ${sessionId?.slice(-8) || 'Unknown'}`,
                             html: `

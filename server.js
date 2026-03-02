@@ -213,7 +213,7 @@ Summary:`;
         const subjectName = contactInfo?.name || contactInfo?.email || `Session ${sessionId?.slice(-8) || 'Unknown'}`;
 
         await transporter.sendMail({
-            from: `"LockboxPM Chat Bot" <${process.env.SMTP_USER}>`,
+            from: `"Lockbox Portfolio Management Chat Bot" <${process.env.SMTP_USER}>`,
             to: 'njkraemer@gmail.com',
             subject: `💬 New Lead - ${subjectName}`,
             text: `🔔 NEW CHAT LEAD
@@ -298,7 +298,7 @@ Sent automatically 3 minutes after last message.`,
                     </div>
 
                     <div style="text-align: center; padding: 16px; color: #94a3b8; font-size: 12px;">
-                        Sent automatically 3 minutes after last message | LockboxPM Chat Bot
+                        Sent automatically 3 minutes after last message | Lockbox Portfolio Management Chat Bot
                     </div>
                 </div>
             `,
@@ -331,13 +331,13 @@ app.post('/api/send-intake-summary', async (req, res) => {
         });
 
         await transporter.sendMail({
-            from: `"Nicholas Kraemer - LockboxPM" <${process.env.SMTP_USER}>`,
+            from: `"Nicholas Kraemer - Lockbox Portfolio Management" <${process.env.SMTP_USER}>`,
             to: email,
             subject: `Your Strategy Playbook - ${company}`,
             html: `
                 <div style="font-family: 'Helvetica', sans-serif; color: #333; max-width: 700px; margin: 0 auto;">
                     <div style="background: linear-gradient(135deg, #0891b2, #1e40af); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-                        <h1 style="color: white; margin: 0;">LockboxPM</h1>
+                        <h1 style="color: white; margin: 0;">Lockbox Portfolio Management</h1>
                         <p style="color: #e0f2fe; margin: 10px 0 0;">Financial Systems & AI Automation Consulting</p>
                     </div>
                     <div style="padding: 30px; background: #f8fafc; border: 1px solid #e2e8f0;">

@@ -203,7 +203,7 @@ const AppContent: React.FC = () => {
 
         {/* Footer info */}
         <div className="p-4 text-center text-[10px] text-slate-600 font-mono opacity-50 pointer-events-none">
-          LOCKBOXPM OS v2.0 | ENCRYPTED CONNECTION | <span className="text-green-500">SYSTEM ONLINE</span>
+          LOCKBOX PORTFOLIO MANAGEMENT (LOCKBOXPM) OS v2.0 | ENCRYPTED CONNECTION | <span className="text-green-500">SYSTEM ONLINE</span>
         </div>
       </main>
 

@@ -26,7 +26,7 @@ const CommunicatePanel: React.FC = () => {
         {
             id: '1',
             role: 'assistant',
-            content: "Hi! I'm the LockboxPM assistant. How can I help you today? Feel free to ask about our consulting services, pricing, or how we can help with your project.",
+            content: "Hi! I'm the Lockbox Portfolio Management (LockboxPM) assistant. How can I help you today? Feel free to ask about our consulting services, pricing, or how we can help with your project.",
             timestamp: new Date()
         }
     ]);
@@ -93,7 +93,7 @@ const CommunicatePanel: React.FC = () => {
         }
 
         if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
-            return "Hello! Great to connect with you. I'm here to help answer questions about LockboxPM's consulting services. What brings you here today?";
+            return "Hello! Great to connect with you. I'm here to help answer questions about Lockbox Portfolio Management's consulting services. What brings you here today?";
         }
 
         if (lowerMessage.includes('thank')) {
@@ -304,7 +304,7 @@ const CommunicatePanel: React.FC = () => {
                                         </svg>
                                     </div>
                                     <div>
-                                        <div className="text-slate-100 font-medium">LockboxPM Assistant</div>
+                                        <div className="text-slate-100 font-medium">LockboxPM (Portfolio Management) Assistant</div>
                                         <div className="text-xs text-green-400 flex items-center gap-1">
                                             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
                                             Online
@@ -321,8 +321,8 @@ const CommunicatePanel: React.FC = () => {
                                         >
                                             <div
                                                 className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.role === 'user'
-                                                        ? 'bg-cyan-600 text-white rounded-br-md'
-                                                        : 'bg-slate-700/50 text-slate-200 rounded-bl-md border border-slate-600/50'
+                                                    ? 'bg-cyan-600 text-white rounded-br-md'
+                                                    : 'bg-slate-700/50 text-slate-200 rounded-bl-md border border-slate-600/50'
                                                     }`}
                                             >
                                                 <div className="text-sm whitespace-pre-wrap">{message.content}</div>

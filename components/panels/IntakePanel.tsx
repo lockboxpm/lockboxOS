@@ -107,7 +107,7 @@ const IntakePanel: React.FC<IntakePanelProps> = ({ setActivePanel }) => {
             Core Problem: ${formData.problem}
             Current Tools: ${formData.tools}
             
-            AVAILABLE SERVICES FROM LOCKBOXPM:
+            AVAILABLE SERVICES FROM LOCKBOX PORTFOLIO MANAGEMENT (LOCKBOXPM):
             ${servicesContext}
             
             PRICING STRUCTURE:
@@ -254,7 +254,7 @@ const IntakePanel: React.FC<IntakePanelProps> = ({ setActivePanel }) => {
                 </head>
                 <body>
                     <div class="header">
-                        <div class="logo">LOCKBOX PM</div>
+                        <div class="logo">LOCKBOX PORTFOLIO MANAGEMENT</div>
                         <p>Financial Engineering & AI Automation</p>
                         <h1>Strategic Playbook: ${formData.company}</h1>
                         <p>Prepared for: ${formData.name} | Date: ${new Date().toLocaleDateString()}</p>

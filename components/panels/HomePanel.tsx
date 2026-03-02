@@ -265,7 +265,7 @@ const HomePanel: React.FC<HomePanelProps> = ({ setActivePanel }) => {
         ).join('\n\n');
 
         const emailBody = `
-NEW PROJECT INTAKE FROM LOCKBOXPM.COM
+NEW PROJECT INTAKE FROM LOCKBOX PORTFOLIO MANAGEMENT (LOCKBOXPM.COM)
 =====================================
 
 CLIENT INFORMATION:
@@ -280,7 +280,7 @@ CHAT TRANSCRIPT:
 ${chatTranscript}
 
 ---
-Sent automatically from LockboxPM Project Intake
+Sent automatically from Lockbox Portfolio Management (LockboxPM) Project Intake
         `.trim();
 
         // Use mailto as fallback - in production, this would hit an API endpoint
@@ -300,7 +300,7 @@ Sent automatically from LockboxPM Project Intake
         localStorage.setItem('lbpm_intakes', JSON.stringify(intakes));
     };
 
-    const systemPrompt = `You are Nick's AI project intake assistant at LockboxPM. Your job is to warmly welcome potential clients and gather information about their project needs.
+    const systemPrompt = `You are Nick's AI project intake assistant at Lockbox Portfolio Management (LockboxPM). Your job is to warmly welcome potential clients and gather information about their project needs.
 
 Nick is a Financial Systems Architect & AI Engineer with 15+ years experience in:
 - Financial automation & bookkeeping systems (AppFolio, QuickBooks, Xero)
