@@ -222,8 +222,8 @@ export const INITIAL_VENTURES: Venture[] = [
         url: 'https://elevatedexteriorelements.com',
         status: 'loaded',
         logoUrl: 'https://www.google.com/s2/favicons?domain=elevatedexteriorelements.com&sz=128',
-        summary: 'Premium exterior construction and landscaping services in the Bay Area.',
-        products: ['Decks & Patios', 'Fencing & Gates', 'Outdoor Living Spaces']
+        summary: 'Premium exterior construction, custom decking, and bespoke outdoor living spaces serving the Bay Area.',
+        products: ['Custom Decks', 'Fencing & Gates', 'Outdoor Living Spaces']
     },
     {
         id: 'v1',
@@ -231,8 +231,8 @@ export const INITIAL_VENTURES: Venture[] = [
         url: 'https://www.pumamala.com',
         status: 'loaded',
         logoUrl: 'https://www.google.com/s2/favicons?domain=pumamala.com&sz=128',
-        summary: 'Wellness retreat and adventure destination in the heart of Costa Rica\'s rainforest.',
-        products: ['Private Retreat Bookings', 'Adventure Tours', 'Wellness Programs']
+        summary: 'A secluded private reserve and wellness destination offering exclusive retreat experiences in Costa Rica.',
+        products: ['Private Retreat Bookings', 'Nature Experiences', 'Wellness Programs']
     },
     {
         id: 'v2',
@@ -240,8 +240,8 @@ export const INITIAL_VENTURES: Venture[] = [
         url: 'https://www.sierramorenatower.com',
         status: 'loaded',
         logoUrl: 'https://www.google.com/s2/favicons?domain=sierramorenatower.com&sz=128',
-        summary: 'Luxury residential tower with panoramic mountain views and premium amenities.',
-        products: ['Unit Sales', 'Property Management', 'HOA Administration']
+        summary: 'The San Francisco Bay Area\'s premier technological hub providing broadcast, radar, telecommunication, and space & satellite solutions.',
+        products: ['Broadcast Solutions', 'Radar & Telecommunications', 'Space & Satellite Systems']
     },
     {
         id: 'v3',
@@ -249,8 +249,8 @@ export const INITIAL_VENTURES: Venture[] = [
         url: 'https://mydigitalsecurity.pro',
         status: 'loaded',
         logoUrl: '/mydigitalsecurity-logo.png',
-        summary: 'Digital and physical security solutions with remote monitoring and self-installation kits.',
-        products: ['Remote Network Monitoring', 'Security Self-Installation Kits', 'Remote Tech Support']
+        summary: 'Professional grade digital and physical security solutions designed for seamless remote monitoring and self-installation.',
+        products: ['Remote Network Monitoring', 'Security Hardware Kits', 'Technical Support']
     }
 ];
 
