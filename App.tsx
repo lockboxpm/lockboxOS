@@ -160,10 +160,10 @@ const AppContent: React.FC = () => {
       {/* --- SIMPLIFIED BACKGROUND --- */}
 
       {/* 1. Clean Gradient */}
-      <div className="absolute inset-0 z-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"></div>
+      <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"></div>
 
       {/* 2. Subtle top accent */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent z-0"></div>
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent z-0 pointer-events-none"></div>
 
       {/* 3. Soft radial glow */}
       <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,rgba(59,130,246,0.08)_0%,transparent_50%)]"></div>
@@ -179,7 +179,7 @@ const AppContent: React.FC = () => {
         Skip to content
       </a>
 
-      <div className="z-30 h-full shadow-2xl">
+      <div className="relative z-30 h-full shrink-0 shadow-2xl">
         <Sidebar
           activePanel={activePanel}
           setActivePanel={setActivePanel}
