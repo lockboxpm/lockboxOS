@@ -368,6 +368,86 @@ app.post('/api/send-intake-summary', async (req, res) => {
     }
 });
 
+// Private Lending Inquiry Endpoint
+app.post('/api/send-lending-inquiry', async (req, res) => {
+    try {
+        const { name, email, phone, region, assetType, financingType, amount, details } = req.body;
+
+        if (!name || !email || !email.includes('@')) {
+            return res.status(400).json({ error: 'Name and a valid email are required' });
+        }
+
+        const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: parseInt(process.env.SMTP_PORT || '587'),
+            secure: false,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASSWORD,
+            },
+        });
+
+        const formattedHtml = `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; max-width: 650px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; background: #ffffff;">
+                <div style="background: linear-gradient(135deg, #0891b2, #0f172a); padding: 24px; color: white;">
+                    <h2 style="margin: 0; font-size: 20px;">🏦 New Private Financing Inquiry [${region || 'General'}]</h2>
+                    <p style="margin: 6px 0 0; font-size: 13px; color: #cbd5e1;">Received from lockboxpm.com/lending</p>
+                </div>
+                <div style="padding: 24px;">
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
+                        <tr><td style="padding: 8px 0; color: #64748b; width: 160px;">Applicant Name:</td><td style="font-weight: bold; color: #0f172a;">${name}</td></tr>
+                        <tr><td style="padding: 8px 0; color: #64748b;">Email Address:</td><td><a href="mailto:${email}" style="color: #0891b2; font-weight: 500;">${email}</a></td></tr>
+                        <tr><td style="padding: 8px 0; color: #64748b;">Phone Number:</td><td style="color: #0f172a;">${phone || 'Not provided'}</td></tr>
+                        <tr><td style="padding: 8px 0; color: #64748b;">Target Region:</td><td style="font-weight: bold; color: #0891b2;">${region}</td></tr>
+                        <tr><td style="padding: 8px 0; color: #64748b;">Asset / Business:</td><td style="font-weight: bold; color: #0f172a;">${assetType || 'Not specified'}</td></tr>
+                        <tr><td style="padding: 8px 0; color: #64748b;">Financing Type:</td><td>${financingType || 'Debt Financing'}</td></tr>
+                        <tr><td style="padding: 8px 0; color: #64748b;">Target Capital:</td><td style="font-weight: bold; color: #059669;">${amount || 'Not specified'}</td></tr>
+                    </table>
+                    <div style="background: #f8fafc; border-left: 4px solid #0891b2; padding: 14px 18px; border-radius: 6px; margin-bottom: 20px;">
+                        <h4 style="margin: 0 0 6px; font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Deal Overview & Objectives:</h4>
+                        <p style="margin: 0; font-size: 13.5px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${details || 'No additional project details provided.'}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Dispatch alert email to host (Nick)
+        await transporter.sendMail({
+            from: `"LockboxPM Inquiries" <${process.env.SMTP_USER}>`,
+            to: 'nick@lockboxpm.com, njkraemer@gmail.com',
+            replyTo: email,
+            subject: `🏦 Private Lending Inquiry [${region}] - ${name}`,
+            html: formattedHtml
+        });
+
+        // Dispatch confirmation receipt to client
+        await transporter.sendMail({
+            from: `"Nicholas Kraemer - Lockbox Portfolio Management" <${process.env.SMTP_USER}>`,
+            to: email,
+            subject: `Private Lending Inquiry Received [${region}] - Lockbox Portfolio Management`,
+            html: `
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                    <h2 style="color: #0891b2; margin-top: 0;">Inquiry Received</h2>
+                    <p>Hi ${name},</p>
+                    <p>Thank you for submitting your private financing inquiry for <strong>${assetType || 'your project'}</strong> in <strong>${region}</strong>.</p>
+                    <p>Our capital advisory team has received your details and will review your parameters against our private capital network. We will follow up with you directly.</p>
+                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+                    <p style="font-size: 12px; color: #64748b; line-height: 1.5;">
+                        <strong>Nicholas Kraemer</strong> | Lockbox Portfolio Management<br />
+                        Website: <a href="https://lockboxpm.com" style="color: #0891b2;">lockboxpm.com</a><br />
+                        Direct: nick@lockboxpm.com • +1 (702) 720-4750
+                    </p>
+                </div>
+            `
+        });
+
+        res.json({ success: true, message: 'Inquiry submitted successfully' });
+    } catch (error) {
+        console.error('Lending inquiry error:', error);
+        res.status(500).json({ error: 'Failed to process lending inquiry', details: String(error) });
+    }
+});
+
 // SPA fallback - serve index.html for all other routes
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
