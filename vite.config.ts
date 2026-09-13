@@ -36,7 +36,13 @@ export default defineConfig(({ mode }) => {
       'process.env.API_KEY': JSON.stringify(geminiKey),
       'process.env.GEMINI_API_KEY': JSON.stringify(geminiKey),
       'process.env.PRINTFUL_STORE_ID': JSON.stringify('17464534'),
-      'process.env.STRIPE_PUBLISHABLE_KEY': JSON.stringify(stripePublishableKey)
+      'process.env.STRIPE_PUBLISHABLE_KEY': JSON.stringify(stripePublishableKey),
+      'process.env.ADMIN_USERNAME': JSON.stringify(env.ADMIN_USERNAME || 'admin'),
+      'process.env.ADMIN_PASSWORD': JSON.stringify(env.ADMIN_PASSWORD || 'admin'),
+      'process.env.CLIENT_USERNAME': JSON.stringify(env.CLIENT_USERNAME || 'client'),
+      'process.env.CLIENT_PASSWORD': JSON.stringify(env.CLIENT_PASSWORD || 'client123'),
+      'process.env.ADMIN_EMAIL': JSON.stringify(env.ADMIN_EMAIL || 'admin@lockboxpm.com'),
+      'process.env.CLIENT_EMAIL': JSON.stringify(env.CLIENT_EMAIL || 'client@lockboxpm.com')
     },
     resolve: {
       alias: {

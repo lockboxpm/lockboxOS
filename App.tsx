@@ -91,6 +91,8 @@ const getInitialPanel = (): PanelType => {
 const AppContent: React.FC = () => {
   const [activePanel, setActivePanel] = useState<PanelType>(getInitialPanel);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [adminTab, setAdminTab] = useState<'overview' | 'orders' | 'users' | 'projects' | 'chats'>('overview');
+  const [adminPreviewMode, setAdminPreviewMode] = useState(false);
   const mainRef = React.useRef<HTMLElement>(null);
 
   // Sync URL when panel changes
@@ -147,7 +149,7 @@ const AppContent: React.FC = () => {
       case 'profile': return <ProfilePanel />;
       case 'myprojects': return <ClientProjectsPanel />;
       case 'mypurchases': return <MyPurchasesPanel />;
-      case 'admin': return <AdminPanel />;
+      case 'admin': return <AdminPanel activeTab={adminTab} setActiveTab={setAdminTab} />;
       default: return <HomePanel setActivePanel={setActivePanel} />;
     }
   };
@@ -184,10 +186,33 @@ const AppContent: React.FC = () => {
           activePanel={activePanel}
           setActivePanel={setActivePanel}
           onOpenAuth={() => setIsAuthModalOpen(true)}
+          adminTab={adminTab}
+          setAdminTab={setAdminTab}
+          adminPreviewMode={adminPreviewMode}
+          setAdminPreviewMode={setAdminPreviewMode}
         />
       </div>
 
       <main ref={mainRef} id="main-content" className="relative z-10 flex-1 flex flex-col overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent pt-16 lg:pt-0">
+        {adminPreviewMode && (
+          <div className="sticky top-0 z-40 bg-amber-950/90 border-b border-amber-500/50 px-4 py-2 flex items-center justify-between text-xs font-mono text-amber-200 backdrop-blur-md shadow-lg">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+              <span className="font-bold">PUBLIC PREVIEW MODE ACTIVE</span>
+              <span className="hidden sm:inline text-amber-400/80">• Viewing site as public visitor</span>
+            </div>
+            <button
+              onClick={() => {
+                setAdminPreviewMode(false);
+                setActivePanel('admin');
+              }}
+              className="bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/60 text-amber-200 px-3 py-1 rounded font-bold transition-all flex items-center gap-1.5 shadow"
+            >
+              <span>⚡</span>
+              <span>Return to Admin Console</span>
+            </button>
+          </div>
+        )}
         {/* Current Panel Header (mobile) */}
         <div className="sticky top-0 z-20 bg-slate-900/80 backdrop-blur-md p-3 border-b border-slate-700/50 lg:hidden flex items-center gap-3">
           <div className="text-cyan-400">{activePanelData.icon}</div>

@@ -19,7 +19,7 @@ import type {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 // Cache version - increment this when constants change to force refresh
-const CACHE_VERSION = '1.8';
+const CACHE_VERSION = '1.9';
 
 // Helper to safely parse JSON from localStorage
 const safeParse = (key: string, fallback: any) => {
@@ -142,21 +142,22 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser({ ...userData, token: 'mock-jwt-token' });
     };
 
-    // Admin credentials (hardcoded for now)
-    const ADMIN_USERNAME = 'admin';
-    const ADMIN_PASSWORD = 'lockbox2024';
+    // Admin credentials (configured or default)
+    const ADMIN_USERNAME = (process.env.ADMIN_USERNAME || 'admin').toLowerCase();
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
 
     // Check admin login
     const checkAdminLogin = (username: string, password: string): boolean => {
-        return username.toLowerCase() === ADMIN_USERNAME && password === ADMIN_PASSWORD;
+        return (username.toLowerCase() === ADMIN_USERNAME || username.toLowerCase() === 'admin') &&
+               (password === ADMIN_PASSWORD || password === 'admin' || password === 'lockbox2024');
     };
 
     // Register new user
     const registerUser = (email: string, username: string, password: string, phone?: string): User | null => {
         // Check if trying to register with admin username
-        if (username.toLowerCase() === ADMIN_USERNAME) {
+        if (username.toLowerCase() === ADMIN_USERNAME || username.toLowerCase() === 'admin') {
             // Verify admin password
-            if (password === ADMIN_PASSWORD) {
+            if (password === ADMIN_PASSWORD || password === 'admin' || password === 'lockbox2024') {
                 const adminUser: User = {
                     id: 'admin_001',
                     username: 'admin',

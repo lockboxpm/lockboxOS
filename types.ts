@@ -113,6 +113,9 @@ export interface Client {
     description: string;
     url: string;
     role: string;
+    status?: 'Active' | 'Inactive' | 'Completed' | string;
+    startDate?: string;
+    endDate?: string;
     scannedData?: ClientScannedData;
 }
 
@@ -310,3 +313,7 @@ export interface DataContextType {
     saveChatSession: (session: ChatSession) => void;
     getChatSessionsForUser: (userId: string) => ChatSession[];
 }
+
+declare const process: {
+    env: Record<string, string | undefined>;
+};

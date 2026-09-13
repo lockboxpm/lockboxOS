@@ -58,9 +58,18 @@ const UserRow: React.FC<{
     </div>
 );
 
-const AdminPanel: React.FC = () => {
+export type AdminTabType = 'overview' | 'users' | 'projects' | 'orders' | 'chats';
+
+interface AdminPanelProps {
+    activeTab?: AdminTabType;
+    setActiveTab?: (tab: AdminTabType) => void;
+}
+
+const AdminPanel: React.FC<AdminPanelProps> = ({ activeTab: propActiveTab, setActiveTab: propSetActiveTab }) => {
     const { user, isAdmin, allUsers, allProjectRequests, updateUserRole, updateProjectStatus, allPurchases, updatePurchase, allChatSessions } = useData();
-    const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'projects' | 'orders' | 'chats'>('overview');
+    const [localActiveTab, setLocalActiveTab] = useState<AdminTabType>('overview');
+    const activeTab = propActiveTab || localActiveTab;
+    const setActiveTab = propSetActiveTab || setLocalActiveTab;
     const [projectFilter, setProjectFilter] = useState<'all' | ProjectStatus>('all');
     const [orderFilter, setOrderFilter] = useState<'all' | PurchaseStatus>('all');
     const [editingTracking, setEditingTracking] = useState<string | null>(null);

@@ -125,7 +125,27 @@ const ClientCard: React.FC<{
                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                         </a>
                     )}
-                    <p className="text-slate-500 text-xs mt-1">{client.role}</p>
+                    <div className="flex items-center gap-2 flex-wrap mt-1">
+                        <p className="text-slate-500 text-xs">{client.role}</p>
+                        {client.status && (
+                            <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-semibold border flex items-center gap-1 ${
+                                client.status.toLowerCase() === 'active'
+                                    ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                                    : client.status.toLowerCase() === 'completed'
+                                    ? 'bg-blue-500/15 text-blue-400 border-blue-500/30'
+                                    : 'bg-slate-700/50 text-slate-400 border-slate-600/40'
+                            }`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${client.status.toLowerCase() === 'active' ? 'bg-emerald-400 animate-pulse' : 'bg-slate-400'}`}></span>
+                                {client.status}
+                            </span>
+                        )}
+                        {(client.startDate || client.endDate) && (
+                            <span className="text-[10px] font-mono text-slate-400 bg-slate-900/60 px-2 py-0.5 rounded border border-slate-700/50 flex items-center gap-1">
+                                <span>📅</span>
+                                {client.startDate || 'Start'} – {client.endDate || 'Present'}
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -178,7 +198,7 @@ const ClientsPanel: React.FC = () => {
 
     const handleAdd = () => {
         setEditIndex(null);
-        setFormData({ name: '', description: '', url: '', role: '' });
+        setFormData({ name: '', description: '', url: '', role: '', status: 'Active', startDate: '', endDate: 'Present' });
         setIsEditing(true);
     };
 

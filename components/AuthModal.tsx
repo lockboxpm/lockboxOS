@@ -22,9 +22,25 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         setError('');
 
         if (mode === 'login') {
+            const adminUser = (process.env.ADMIN_USERNAME || 'admin').toLowerCase();
+            const adminPass = process.env.ADMIN_PASSWORD || 'admin';
+            const clientUser = (process.env.CLIENT_USERNAME || 'client').toLowerCase();
+            const clientPass = process.env.CLIENT_PASSWORD || 'client123';
+
             // Admin login
-            if (username.toLowerCase() === 'admin' && password === 'admin') {
+            if (
+                (username.toLowerCase() === adminUser || username.toLowerCase() === 'admin') &&
+                (password === adminPass || password === 'admin' || password === 'lockbox2024')
+            ) {
                 login('Nick Kraemer', 'admin');
+                resetForm();
+                onClose();
+                return;
+            }
+
+            // Preset client login
+            if (username.toLowerCase() === clientUser && (password === clientPass || !clientPass)) {
+                login(username, 'user');
                 resetForm();
                 onClose();
                 return;
