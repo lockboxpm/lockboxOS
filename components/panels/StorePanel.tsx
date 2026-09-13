@@ -21,6 +21,8 @@ const StorePanel: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [selectedVariants, setSelectedVariants] = useState<Record<string, number>>({});
     const [isCheckingOut, setIsCheckingOut] = useState(false);
+    const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
+    const [addedToast, setAddedToast] = useState<{ name: string; count: number; price: number } | null>(null);
 
     useEffect(() => {
         loadProducts();
@@ -62,6 +64,21 @@ const StorePanel: React.FC = () => {
         };
 
         addToCart(cartProduct);
+
+        setRecentlyAddedId(product.id);
+        setTimeout(() => {
+            setRecentlyAddedId(null);
+        }, 2200);
+
+        const totalCount = cart.reduce((acc, item) => acc + item.quantity, 0) + 1;
+        setAddedToast({
+            name: cartProduct.name,
+            count: totalCount,
+            price: cartTotal + cartProduct.price
+        });
+        setTimeout(() => {
+            setAddedToast(null);
+        }, 4000);
     };
 
     const handleCheckout = async () => {
@@ -192,9 +209,23 @@ const StorePanel: React.FC = () => {
                                         <p className="text-sm text-slate-400 mb-4 flex-grow">{product.description}</p>
                                         <button
                                             onClick={() => handleAddToCart(product)}
-                                            className="w-full bg-slate-700 hover:bg-cyan-600 text-slate-200 hover:text-white py-2 rounded font-bold transition-colors flex items-center justify-center gap-2"
+                                            className={`w-full py-2.5 rounded font-bold transition-all flex items-center justify-center gap-2 ${
+                                                recentlyAddedId === product.id
+                                                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/40 scale-[1.02]'
+                                                    : 'bg-slate-700 hover:bg-cyan-600 text-slate-200 hover:text-white'
+                                            }`}
                                         >
-                                            Add to Cart
+                                            {recentlyAddedId === product.id ? (
+                                                <>
+                                                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                    <span>Added to Cart!</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                                    <span>Add to Cart</span>
+                                                </>
+                                            )}
                                         </button>
                                     </div>
                                 </div>
@@ -263,6 +294,27 @@ const StorePanel: React.FC = () => {
                                 </div>
                             </div>
                         )}
+                    </div>
+                )}
+                {/* Floating Added Notification Toast */}
+                {addedToast && (
+                    <div className="fixed bottom-6 right-6 z-50 max-w-sm bg-slate-900/95 border-2 border-emerald-500/80 rounded-xl p-4 shadow-2xl backdrop-blur-md flex items-center gap-3 animate-fade-in">
+                        <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold text-lg shrink-0">
+                            ✓
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-bold text-slate-100 truncate">Added to Cart!</h4>
+                            <p className="text-xs text-slate-400 truncate">{addedToast.name}</p>
+                            <p className="text-xs text-emerald-400 font-mono mt-0.5 font-semibold">
+                                {addedToast.count} item{addedToast.count > 1 ? 's' : ''} in cart (${addedToast.price.toFixed(2)})
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => { setIsCartOpen(true); setAddedToast(null); }}
+                            className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs px-3 py-2 rounded-lg transition-colors shrink-0"
+                        >
+                            View Cart
+                        </button>
                     </div>
                 )}
             </div>

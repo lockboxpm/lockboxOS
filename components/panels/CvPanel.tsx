@@ -1,3 +1,4 @@
+import { openCvInfographicPrintWindow } from '../../services/cvPdfGenerator';
 import React, { useState } from 'react';
 import Panel from '../Panel';
 import { useData } from '../../contexts/DataContext';
@@ -63,9 +64,8 @@ const CvPanel: React.FC = () => {
     };
 
     const handleDownloadPdf = () => {
-        // Open print dialog for PDF generation
-        // This will print the CV section styled for PDF
-        window.print();
+        // Open dedicated executive infographic print & PDF view
+        openCvInfographicPrintWindow({ theme: 'dark' });
     };
 
     const handleEmailForward = async () => {

@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import Panel from '../Panel';
-import { GoogleGenAI } from "@google/genai";
 import { PanelType } from '../../types';
 import { useData } from '../../contexts/DataContext';
 import { SERVICES } from '../../constants';
@@ -455,11 +454,11 @@ const IntakePanel: React.FC<IntakePanelProps> = ({ setActivePanel }) => {
                             <div className="absolute inset-0 border-t-4 border-cyan-500 rounded-full animate-spin"></div>
                             <div className="absolute inset-2 border-t-4 border-blue-500 rounded-full animate-spin-reverse"></div>
                         </div>
-                        <h3 className="text-xl font-mono font-bold text-cyan-400 mb-2">AI Agent is thinking...</h3>
+                        <h3 className="text-xl font-mono font-bold text-cyan-400 mb-2">Compiling your project blueprint...</h3>
                         <p className="text-slate-500 text-center max-w-md">
                             Analyzing your tech stack ({formData.tools})...<br />
                             Reviewing {file ? file.name : 'inputs'}...<br />
-                            Formulating expense reduction strategy...
+                            Formatting intake summary and roadmap...
                         </p>
                         <button
                             onClick={() => { setStep('upload'); setIsProcessing(false); }}
