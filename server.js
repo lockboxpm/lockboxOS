@@ -420,27 +420,30 @@ app.post('/api/send-lending-inquiry', async (req, res) => {
             html: formattedHtml
         });
 
-        // Dispatch confirmation receipt to client
-        await transporter.sendMail({
-            from: `"Nicholas Kraemer - Lockbox Portfolio Management" <${process.env.SMTP_USER}>`,
-            to: email,
-            subject: `Private Lending Inquiry Received [${region}] - Lockbox Portfolio Management`,
-            html: `
-                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px;">
-                    <h2 style="color: #0891b2; margin-top: 0;">Inquiry Received</h2>
-                    <p>Hi ${name},</p>
-                    <p>Thank you for submitting your private financing inquiry for <strong>${assetType || 'your project'}</strong> in <strong>${region}</strong>.</p>
-                    <p>Our capital advisory team has received your details and will review your parameters against our private capital network. We will follow up with you directly.</p>
-                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
-                    <p style="font-size: 12px; color: #64748b; line-height: 1.5;">
-                        <strong>Nicholas Kraemer</strong> | Lockbox Portfolio Management<br />
-                        Website: <a href="https://lockboxpm.com" style="color: #0891b2;">lockboxpm.com</a><br />
-                        Direct: nick@lockboxpm.com • +1 (702) 720-4750
-                    </p>
-                </div>
-            `
-        });
-
+        // Dispatch confirmation receipt to client (safeguarded against recipient mailbox errors)
+        try {
+            await transporter.sendMail({
+                from: `"Nicholas Kraemer - Lockbox Portfolio Management" <${process.env.SMTP_USER}>`,
+                to: email,
+                subject: `Private Lending Inquiry Received [${region}] - Lockbox Portfolio Management`,
+                html: `
+                    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                        <h2 style="color: #0891b2; margin-top: 0;">Inquiry Received</h2>
+                        <p>Hi ${name},</p>
+                        <p>Thank you for submitting your private financing inquiry for <strong>${assetType || 'your project'}</strong> in <strong>${region}</strong>.</p>
+                        <p>Our capital advisory team has received your details and will review your parameters against our private capital network. We will follow up with you directly.</p>
+                        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+                        <p style="font-size: 12px; color: #64748b; line-height: 1.5;">
+                            <strong>Nicholas Kraemer</strong> | Lockbox Portfolio Management<br />
+                            Website: <a href="https://lockboxpm.com" style="color: #0891b2;">lockboxpm.com</a><br />
+                            Direct: nick@lockboxpm.com • +1 (702) 720-4750
+                        </p>
+                    </div>
+                `
+            });
+        } catch (clientMailError) {
+            console.warn("Client confirmation email notice:", clientMailError.message);
+        }
         res.json({ success: true, message: 'Inquiry submitted successfully' });
     } catch (error) {
         console.error('Lending inquiry error:', error);
