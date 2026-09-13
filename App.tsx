@@ -207,7 +207,7 @@ const AppContent: React.FC = () => {
         </div>
       </main>
 
-      <ChatWidget onNavigate={(panel) => setActivePanel(panel as PanelType)} />
+      {/* <ChatWidget onNavigate={(panel) => setActivePanel(panel as PanelType)} /> */}
       <FloatingCart onNavigate={(panel) => setActivePanel(panel as PanelType)} />
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </div>

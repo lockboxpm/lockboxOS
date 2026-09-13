@@ -1,174 +1,27 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import Panel from '../Panel';
 
-interface SystemInfo {
-    browser: string;
-    os: string;
-    platform: string;
-    language: string;
-    screenSize: string;
-    cookiesEnabled: boolean;
-}
-
-interface ChatMessage {
-    id: string;
-    role: 'user' | 'assistant';
-    content: string;
-    timestamp: Date;
-}
-
-type TabType = 'schedule' | 'contact' | 'system' | 'chat';
+type TabType = 'schedule' | 'contact';
 
 const CommunicatePanel: React.FC = () => {
     const [activeTab, setActiveTab] = useState<TabType>('schedule');
-    const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
-    const [messages, setMessages] = useState<ChatMessage[]>([
-        {
-            id: '1',
-            role: 'assistant',
-            content: "Hi! I'm the Lockbox Portfolio Management (LockboxPM) assistant. How can I help you today? Feel free to ask about our consulting services, pricing, or how we can help with your project.",
-            timestamp: new Date()
-        }
-    ]);
-    const [inputValue, setInputValue] = useState('');
-    const [isTyping, setIsTyping] = useState(false);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
-
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
-
-    useEffect(() => {
-        const getOS = (userAgent: string): string => {
-            if (/Windows/i.test(userAgent)) return "Windows";
-            if (/Macintosh|Mac OS/i.test(userAgent)) return "macOS";
-            if (/Linux/i.test(userAgent)) return "Linux";
-            if (/Android/i.test(userAgent)) return "Android";
-            if (/iPhone|iPad|iPod/i.test(userAgent)) return "iOS";
-            return "Unknown";
-        };
-
-        const getBrowser = (userAgent: string): string => {
-            if (/Firefox/i.test(userAgent)) return "Firefox";
-            if (/Chrome/i.test(userAgent) && !/Edg/i.test(userAgent)) return "Chrome";
-            if (/Safari/i.test(userAgent) && !/Chrome/i.test(userAgent)) return "Safari";
-            if (/Edg/i.test(userAgent)) return "Edge";
-            if (/MSIE|Trident/i.test(userAgent)) return "Internet Explorer";
-            return "Unknown";
-        };
-
-        const userAgent = navigator.userAgent;
-        setSystemInfo({
-            browser: getBrowser(userAgent),
-            os: getOS(userAgent),
-            platform: navigator.platform,
-            language: navigator.language,
-            screenSize: `${window.screen.width}x${window.screen.height}`,
-            cookiesEnabled: navigator.cookieEnabled,
-        });
-    }, []);
-
-    const generateResponse = (userMessage: string): string => {
-        const lowerMessage = userMessage.toLowerCase();
-
-        if (lowerMessage.includes('pricing') || lowerMessage.includes('cost') || lowerMessage.includes('rate')) {
-            return "Our rates vary by engagement type:\n\n• **GTM (Global Team Members)**: Starting at $15+/hr for bilingual staff\n• **Implementation Team**: $50+/hr for specialized tasks\n• **Systems Architect**: $100-250/hr for senior-level work\n• **Direct with Nick**: $400-1200/hr for executive advisory\n\nWe also offer fixed-rate packages for CFO, Controller, and Tax services. Would you like more details on any specific service?";
-        }
-
-        if (lowerMessage.includes('consult') || lowerMessage.includes('service')) {
-            return "We offer consulting across several domains:\n\n• **Technology & AI**: Custom software, AI integration, websites\n• **Finance**: Fractional CFO, Controller oversight, bookkeeping\n• **Real Estate**: Commercial acquisitions, property development\n• **Construction**: Project management, materials sourcing\n\nWhat area interests you most?";
-        }
-
-        if (lowerMessage.includes('schedule') || lowerMessage.includes('call') || lowerMessage.includes('meeting')) {
-            return "You can book a free 15-minute discovery call directly from the **Schedule** tab above. Just select a time that works for you on the Google Calendar embed. No commitment required!";
-        }
-
-        if (lowerMessage.includes('contact') || lowerMessage.includes('email') || lowerMessage.includes('phone')) {
-            return "You can reach us through:\n\n• **Email**: nick+web@lockboxpm.com\n• **Phone**: 702-720-4750\n• **LinkedIn**: linkedin.com/in/njkraemer\n\nCheck the **Contact** tab for clickable links!";
-        }
-
-        if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
-            return "Hello! Great to connect with you. I'm here to help answer questions about Lockbox Portfolio Management's consulting services. What brings you here today?";
-        }
-
-        if (lowerMessage.includes('thank')) {
-            return "You're welcome! Is there anything else I can help you with?";
-        }
-
-        return "Thanks for your message! I'd be happy to help. You can ask me about:\n\n• Our consulting services\n• Pricing and engagement options\n• Scheduling a call\n• Contact information\n\nOr feel free to describe your specific needs and I'll point you in the right direction.";
-    };
-
-    const handleSendMessage = () => {
-        if (!inputValue.trim()) return;
-
-        const userMessage: ChatMessage = {
-            id: Date.now().toString(),
-            role: 'user',
-            content: inputValue.trim(),
-            timestamp: new Date()
-        };
-
-        setMessages(prev => [...prev, userMessage]);
-        setInputValue('');
-        setIsTyping(true);
-
-        // Simulate AI response delay
-        setTimeout(() => {
-            const response = generateResponse(userMessage.content);
-            const assistantMessage: ChatMessage = {
-                id: (Date.now() + 1).toString(),
-                role: 'assistant',
-                content: response,
-                timestamp: new Date()
-            };
-            setMessages(prev => [...prev, assistantMessage]);
-            setIsTyping(false);
-        }, 1000 + Math.random() * 1000);
-    };
-
-    const handleKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSendMessage();
-        }
-    };
-
-    const formatTime = (date: Date): string => {
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    };
 
     const tabs = [
         {
-            id: 'schedule' as TabType, label: 'Schedule', icon: (
+            id: 'schedule' as TabType,
+            label: 'Schedule',
+            icon: (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
             )
         },
         {
-            id: 'contact' as TabType, label: 'Contact', icon: (
+            id: 'contact' as TabType,
+            label: 'Contact',
+            icon: (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-            )
-        },
-        {
-            id: 'chat' as TabType, label: 'Chat', icon: (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-            )
-        },
-        {
-            id: 'system' as TabType, label: 'System', icon: (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <polyline points="4 17 10 11 4 5" />
-                    <line x1="12" y1="19" x2="20" y2="19" />
                 </svg>
             )
         },
@@ -180,7 +33,7 @@ const CommunicatePanel: React.FC = () => {
                 {/* Header */}
                 <div className="text-center">
                     <h2 className="text-3xl font-bold text-slate-100 mb-2">Get in Touch</h2>
-                    <p className="text-slate-400">Schedule a call, find contact details, or view system information</p>
+                    <p className="text-slate-400">Schedule a discovery call or reach out directly</p>
                 </div>
 
                 {/* Tab Navigation */}
@@ -190,10 +43,11 @@ const CommunicatePanel: React.FC = () => {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === tab.id
-                                    ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
-                                    }`}
+                                className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                                    activeTab === tab.id
+                                        ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-bold'
+                                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
+                                }`}
                             >
                                 {tab.icon}
                                 {tab.label}
@@ -206,29 +60,29 @@ const CommunicatePanel: React.FC = () => {
                 <div className="mt-6">
                     {/* Schedule Tab */}
                     {activeTab === 'schedule' && (
-                        <div className="space-y-6 max-w-4xl mx-auto text-center">
+                        <div className="space-y-6 max-w-4xl mx-auto text-center animate-fade-in">
                             <div>
                                 <h3 className="text-xl font-semibold text-slate-100 mb-2">Schedule a Discovery Call</h3>
-                                <p className="text-slate-400 text-sm">
+                                <p className="text-slate-400 text-sm max-w-xl mx-auto">
                                     Book a complimentary 15-minute discovery call to discuss your challenges, goals, and determine if my services are the right fit.
                                 </p>
                             </div>
-                            <div className="bg-white border border-slate-700 rounded-lg overflow-hidden w-full">
+                            <div className="bg-white border border-slate-700 rounded-lg overflow-hidden w-full shadow-xl">
                                 <iframe
                                     src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ0ne_A_zPFE3uOvIixVmfjkqeg7q7G1qy0DK1hb7DcZgrNloHeJYeoCdrRPoV_2uxPbfzscreti?gv=true"
-                                    style={{ border: 0, width: '100%', height: '500px' }}
+                                    style={{ border: 0, width: '100%', height: '520px' }}
                                     title="Schedule an Appointment"
                                 />
                             </div>
                             <p className="text-sm text-slate-500">
-                                My timezone: <span className="text-cyan-400">America/Costa_Rica</span>
+                                My timezone: <span className="text-cyan-400 font-mono">America/Costa_Rica</span>
                             </p>
                         </div>
                     )}
 
                     {/* Contact Tab */}
                     {activeTab === 'contact' && (
-                        <div className="max-w-2xl mx-auto space-y-6">
+                        <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {/* Email */}
                                 <a href="mailto:nick+web@lockboxpm.com" className="glass-panel p-5 flex items-center gap-4 hover:border-cyan-500/30 transition-all group">
@@ -288,132 +142,6 @@ const CommunicatePanel: React.FC = () => {
                                 <p className="text-sm text-slate-400">
                                     I prioritize client confidentiality. All communications and shared documents are treated with the highest level of discretion and protected using industry-best practices.
                                 </p>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Chat Tab */}
-                    {activeTab === 'chat' && (
-                        <div className="max-w-3xl mx-auto">
-                            <div className="glass-panel overflow-hidden">
-                                {/* Chat Header */}
-                                <div className="bg-slate-800/50 px-4 py-3 border-b border-slate-700/50 flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
-                                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <div className="text-slate-100 font-medium">LockboxPM (Portfolio Management) Assistant</div>
-                                        <div className="text-xs text-green-400 flex items-center gap-1">
-                                            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-                                            Online
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Messages Area */}
-                                <div className="h-96 overflow-y-auto p-4 space-y-4 bg-slate-900/30">
-                                    {messages.map((message) => (
-                                        <div
-                                            key={message.id}
-                                            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                                        >
-                                            <div
-                                                className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.role === 'user'
-                                                    ? 'bg-cyan-600 text-white rounded-br-md'
-                                                    : 'bg-slate-700/50 text-slate-200 rounded-bl-md border border-slate-600/50'
-                                                    }`}
-                                            >
-                                                <div className="text-sm whitespace-pre-wrap">{message.content}</div>
-                                                <div className={`text-[10px] mt-1 ${message.role === 'user' ? 'text-cyan-200' : 'text-slate-500'}`}>
-                                                    {formatTime(message.timestamp)}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {isTyping && (
-                                        <div className="flex justify-start">
-                                            <div className="bg-slate-700/50 rounded-2xl rounded-bl-md px-4 py-3 border border-slate-600/50">
-                                                <div className="flex gap-1">
-                                                    <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                                                    <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                                                    <span className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                    <div ref={messagesEndRef} />
-                                </div>
-
-                                {/* Input Area */}
-                                <div className="p-4 border-t border-slate-700/50 bg-slate-800/30">
-                                    <div className="flex gap-3">
-                                        <input
-                                            ref={inputRef}
-                                            type="text"
-                                            value={inputValue}
-                                            onChange={(e) => setInputValue(e.target.value)}
-                                            onKeyPress={handleKeyPress}
-                                            placeholder="Type your message..."
-                                            className="flex-1 bg-slate-700/50 border border-slate-600/50 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all"
-                                        />
-                                        <button
-                                            onClick={handleSendMessage}
-                                            disabled={!inputValue.trim() || isTyping}
-                                            className="px-5 py-3 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white rounded-xl transition-all flex items-center gap-2 font-medium"
-                                        >
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                                            </svg>
-                                            Send
-                                        </button>
-                                    </div>
-                                    <p className="text-xs text-slate-500 mt-2 text-center">
-                                        This is an AI assistant. For complex inquiries, please schedule a call.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* System Tab */}
-                    {activeTab === 'system' && (
-                        <div className="max-w-2xl mx-auto">
-                            <div className="bg-black/50 p-6 rounded-lg border border-slate-700">
-                                <div className="border-b border-slate-600 pb-2 mb-4">
-                                    <p className="font-mono text-green-400 text-sm">Welcome, {systemInfo?.browser || 'user'}. Session information:</p>
-                                </div>
-                                {systemInfo ? (
-                                    <div className="space-y-2 font-mono text-sm">
-                                        <div className="flex">
-                                            <span className="text-cyan-400 w-40">Browser:</span>
-                                            <span className="text-slate-300">{systemInfo.browser}</span>
-                                        </div>
-                                        <div className="flex">
-                                            <span className="text-cyan-400 w-40">Operating System:</span>
-                                            <span className="text-slate-300">{systemInfo.os}</span>
-                                        </div>
-                                        <div className="flex">
-                                            <span className="text-cyan-400 w-40">Platform:</span>
-                                            <span className="text-slate-300">{systemInfo.platform}</span>
-                                        </div>
-                                        <div className="flex">
-                                            <span className="text-cyan-400 w-40">Language:</span>
-                                            <span className="text-slate-300">{systemInfo.language}</span>
-                                        </div>
-                                        <div className="flex">
-                                            <span className="text-cyan-400 w-40">Screen Resolution:</span>
-                                            <span className="text-slate-300">{systemInfo.screenSize}</span>
-                                        </div>
-                                        <div className="flex">
-                                            <span className="text-cyan-400 w-40">Cookies Enabled:</span>
-                                            <span className="text-slate-300">{systemInfo.cookiesEnabled ? 'Yes' : 'No'}</span>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <p className="text-slate-500 animate-pulse">Gathering system info...</p>
-                                )}
                             </div>
                         </div>
                     )}
