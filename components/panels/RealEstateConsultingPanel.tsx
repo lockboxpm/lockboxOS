@@ -18,7 +18,7 @@ const RealEstateConsultingPanel: React.FC<RealEstateConsultingPanelProps> = ({ s
 
                         <div className="relative p-8 md:p-12">
                             <div className="max-w-3xl">
-                                <p className="text-teal-400 font-mono text-sm mb-3 uppercase tracking-widest">CA Licensed Broker & General Contractor</p>
+                                <p className="text-teal-400 font-mono text-sm mb-3 uppercase tracking-widest">Retired CA Licensed Broker (Exp. 07/2026) & General Contractor</p>
                                 <h2 className="text-3xl md:text-5xl font-bold text-slate-100 mb-4 leading-tight">
                                     Real Estate & Construction Consulting
                                 </h2>
@@ -48,8 +48,8 @@ const RealEstateConsultingPanel: React.FC<RealEstateConsultingPanelProps> = ({ s
                             <div className="text-xs text-slate-500 uppercase tracking-wider">CA Contractor Lic</div>
                         </div>
                         <div className="text-center p-4 glass-panel">
-                            <div className="text-2xl font-bold text-indigo-400 mb-1">Broker</div>
-                            <div className="text-xs text-slate-500 uppercase tracking-wider">CA RE License</div>
+                            <div className="text-2xl font-bold text-indigo-400 mb-1">Retired Broker</div>
+                            <div className="text-xs text-slate-500 uppercase tracking-wider">CA DRE #01887570 (Exp. 07/2026)</div>
                         </div>
                         <div className="text-center p-4 glass-panel">
                             <div className="text-2xl font-bold text-pink-400 mb-1">US + CR</div>
@@ -145,9 +145,12 @@ const RealEstateConsultingPanel: React.FC<RealEstateConsultingPanelProps> = ({ s
                     </div>
 
                     {/* Experience Note */}
-                    <div className="p-4 bg-slate-800/30 rounded-lg border-l-4 border-teal-500">
+                    <div className="p-4 bg-slate-800/30 rounded-lg border-l-4 border-teal-500 space-y-2">
                         <p className="text-sm text-slate-400">
                             <span className="text-teal-400 font-medium">Experience includes:</span> Multifamily developments, commercial retail, resort hospitality, cross-border construction projects (US/Costa Rica), and sustainable building practices. Holding a California General B Contractor license with expertise spanning residential, commercial, and infrastructure projects.
+                        </p>
+                        <p className="text-xs text-slate-500 leading-relaxed">
+                            <span className="text-slate-400 font-medium">Licensing Note:</span> Retired California Real Estate Broker (DRE License #01887570, expired July 2026). Real estate engagements are provided strictly as strategic advisory, owner representation, and development consulting services.
                         </p>
                     </div>
                 </div>

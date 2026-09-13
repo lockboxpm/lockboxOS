@@ -236,7 +236,7 @@ const CvPanel: React.FC = () => {
                                 <span className="px-3 py-1 bg-cyan-500/15 text-cyan-400 rounded-full text-xs font-medium border border-cyan-500/30">🌎 Bilingual (English/Spanish)</span>
                                 <span className="px-3 py-1 bg-blue-500/15 text-blue-400 rounded-full text-xs font-medium border border-blue-500/30">📊 25+ Years Experience</span>
                                 <span className="px-3 py-1 bg-violet-500/15 text-violet-400 rounded-full text-xs font-medium border border-violet-500/30">🏗️ CA Gen B Contractor</span>
-                                <span className="px-3 py-1 bg-emerald-500/15 text-emerald-400 rounded-full text-xs font-medium border border-emerald-500/30">🏠 CA Real Estate Broker</span>
+                                <span className="px-3 py-1 bg-emerald-500/15 text-emerald-400 rounded-full text-xs font-medium border border-emerald-500/30">🏠 Retired CA Real Estate Broker</span>
                                 <span className="px-3 py-1 bg-amber-500/15 text-amber-400 rounded-full text-xs font-medium border border-amber-500/30">🤿 SSI Scuba Instructor</span>
                                 <span className="px-3 py-1 bg-red-500/15 text-red-400 rounded-full text-xs font-medium border border-red-500/30">🚑 EMT & First Responder</span>
                             </div>
@@ -320,7 +320,7 @@ const CvPanel: React.FC = () => {
                     <Section title="Licenses & Certifications" isOpen={openSections['licenses']} onClick={() => toggleSection('licenses')}>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-slate-400 text-sm">
                             <p><span className="font-semibold text-slate-300 block">General B Contractor</span> CA License B382267</p>
-                            <p><span className="font-semibold text-slate-300 block">California Broker</span> License 01887570</p>
+                            <p><span className="font-semibold text-slate-300 block">California Broker (Retired)</span> License 01887570 (Expired 07/2026)</p>
                             <p><span className="font-semibold text-slate-300 block">SSI Open Water Instructor</span> Scuba Schools International</p>
                             <p><span className="font-semibold text-slate-300 block">EMT & Paramedic Assoc.</span> CPR & First Aid, Extrication</p>
                             <p><span className="font-semibold text-slate-300 block">FAA Student Pilot</span> Certificate FF-0219426</p>

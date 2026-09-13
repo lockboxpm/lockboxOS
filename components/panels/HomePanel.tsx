@@ -473,7 +473,7 @@ Remember: You're gathering intake info to help Nick prepare for a productive cal
                     </div>
                     <div className="group p-3 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:border-teal-500/50 transition-all hover:scale-105">
                         <div className="text-2xl font-bold text-teal-400 mb-0.5">Broker</div>
-                        <div className="text-[10px] text-slate-500 uppercase tracking-wider">CA Real Estate</div>
+                        <div className="text-[10px] text-slate-500 uppercase tracking-wider">Retired CA RE (Exp. 07/2026)</div>
                     </div>
                 </div>
 
