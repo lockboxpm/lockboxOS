@@ -19,6 +19,7 @@ services:
       - coolify
     labels:
       - caddy=lockboxpm.com, www.lockboxpm.com
+      - caddy.encode=zstd gzip
       - caddy.reverse_proxy={{upstreams 3000}}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
